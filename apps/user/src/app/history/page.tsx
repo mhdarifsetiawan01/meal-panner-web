@@ -6,6 +6,8 @@ import { Navbar } from "@/components/layout/navbar";
 import { fetchWithAuth } from "@/lib/api";
 import { useAuth } from "@/components/providers/auth-provider";
 
+import { MaintenanceView } from "@/components/common/maintenance-view";
+
 export interface HistoryItem {
   id: number;
   recipe_id: number;
@@ -24,16 +26,22 @@ export default function HistoryPage() {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isUpgradeRequired, setIsUpgradeRequired] = useState(false);
+  const [isMaintenance, setIsMaintenance] = useState(false);
 
   const fetchHistory = async () => {
     setLoading(true);
     setErrorMsg(null);
     setIsUpgradeRequired(false);
+    setIsMaintenance(false);
 
     const res = await fetchWithAuth<{ items: HistoryItem[]; is_premium?: boolean }>("/history?limit=20&offset=0");
     setLoading(false);
 
     if (res.error) {
+      if (res.error.isMaintenance) {
+        setIsMaintenance(true);
+        return;
+      }
       if (
         res.error.message.toLowerCase().includes("upgrade") ||
         res.error.message.toLowerCase().includes("premium") ||
@@ -107,8 +115,13 @@ export default function HistoryPage() {
           </div>
         )}
 
+        {/* Maintenance State */}
+        {isMaintenance && !loading && (
+          <MaintenanceView onRetry={fetchHistory} />
+        )}
+
         {/* Generic Error */}
-        {errorMsg && !isUpgradeRequired && (
+        {errorMsg && !isUpgradeRequired && !isMaintenance && (
           <div className="p-4 rounded-2xl bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm">
             {errorMsg}
           </div>

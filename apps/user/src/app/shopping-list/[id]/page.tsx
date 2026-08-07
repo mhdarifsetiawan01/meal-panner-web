@@ -6,6 +6,8 @@ import { Navbar } from "@/components/layout/navbar";
 import { fetchWithAuth } from "@/lib/api";
 import { useAuth } from "@/components/providers/auth-provider";
 
+import { MaintenanceView } from "@/components/common/maintenance-view";
+
 export interface ShoppingListItem {
   name: string;
   quantity?: string;
@@ -34,16 +36,22 @@ export default function ShoppingListDetailPage({
   const [shoppingList, setShoppingList] = useState<ShoppingListDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isMaintenance, setIsMaintenance] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const fetchShoppingList = async () => {
     setLoading(true);
     setErrorMsg(null);
+    setIsMaintenance(false);
 
     const res = await fetchWithAuth<ShoppingListDetail>(`/shopping-list/${id}`);
     setLoading(false);
 
     if (res.error) {
+      if (res.error.isMaintenance) {
+        setIsMaintenance(true);
+        return;
+      }
       setErrorMsg(res.error.message);
       return;
     }
@@ -109,11 +117,22 @@ export default function ShoppingListDetailPage({
     );
   }
 
+  if (isMaintenance && !loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
+        <Navbar />
+        <main className="max-w-3xl mx-auto px-4 py-12">
+          <MaintenanceView onRetry={fetchShoppingList} />
+        </main>
+      </div>
+    );
+  }
+
   if (errorMsg || !shoppingList) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
         <Navbar />
-        <main className="max-w-xl mx-auto px-4 py-16 text-center space-y-4">
+        <main className="max-w-3xl mx-auto px-4 py-12 text-center space-y-4">
           <div className="text-4xl">❌</div>
           <h2 className="text-xl font-bold">Daftar Belanja Tidak Ditemukan</h2>
           <p className="text-sm text-slate-500">{errorMsg || "ID daftar belanja tidak valid."}</p>

@@ -8,6 +8,8 @@ import { RecipeOptionCard, RecipeOption } from "@/components/menu/recipe-option-
 import { fetchWithAuth } from "@/lib/api";
 import { useAuth } from "@/components/providers/auth-provider";
 
+import { MaintenanceView } from "@/components/common/maintenance-view";
+
 export default function GeneratePage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
@@ -16,10 +18,12 @@ export default function GeneratePage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isRateLimited, setIsRateLimited] = useState(false);
+  const [isMaintenance, setIsMaintenance] = useState(false);
 
   const handleGenerate = async () => {
     setErrorMsg(null);
     setIsRateLimited(false);
+    setIsMaintenance(false);
     setIsGenerating(true);
 
     const res = await fetchWithAuth<{ options: RecipeOption[] }>("/menu/generate", {
@@ -29,6 +33,10 @@ export default function GeneratePage() {
     setIsGenerating(false);
 
     if (res.error) {
+      if (res.error.isMaintenance) {
+        setIsMaintenance(true);
+        return;
+      }
       if (res.error.message.includes("429") || res.error.message.toLowerCase().includes("limit")) {
         setIsRateLimited(true);
       }
@@ -133,6 +141,11 @@ export default function GeneratePage() {
               </p>
             </div>
           </div>
+        )}
+
+        {/* Maintenance State */}
+        {isMaintenance && !isGenerating && (
+          <MaintenanceView onRetry={handleGenerate} />
         )}
 
         {/* Rate Limit Reached Alert */}

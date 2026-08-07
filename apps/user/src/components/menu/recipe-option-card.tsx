@@ -58,7 +58,7 @@ export function RecipeOptionCard({
         </span>
 
         <span className="text-lg font-extrabold text-emerald-600 dark:text-emerald-400">
-          Rp {option.total_estimated_price.toLocaleString("id-ID")}
+          Rp {(option.total_estimated_price ?? (option as any).estimated_total_price ?? 0).toLocaleString("id-ID")}
         </span>
       </div>
 

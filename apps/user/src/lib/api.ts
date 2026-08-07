@@ -6,6 +6,7 @@ export interface ApiResponse<T = any> {
   data: T | null;
   error: {
     message: string;
+    isMaintenance?: boolean;
   } | null;
 }
 
@@ -34,7 +35,17 @@ export async function fetchWithAuth<T = any>(
       headers,
     });
 
-    const json = await res.json();
+    if (res.status === 502 || res.status === 503 || res.status === 504) {
+      return {
+        data: null,
+        error: {
+          message: "Server sedang dalam pemeliharaan (Maintenance).",
+          isMaintenance: true,
+        },
+      };
+    }
+
+    const json = await res.json().catch(() => ({}));
     if (!res.ok) {
       return {
         data: null,
@@ -49,7 +60,8 @@ export async function fetchWithAuth<T = any>(
     return {
       data: null,
       error: {
-        message: err.message || "Gagal terhubung ke server backend API.",
+        message: "Gagal terhubung ke server API (Maintenance).",
+        isMaintenance: true,
       },
     };
   }

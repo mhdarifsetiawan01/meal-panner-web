@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { fetchWithAuth } from "@/lib/api";
 import { useAuth } from "@/components/providers/auth-provider";
+import { MaintenanceView } from "@/components/common/maintenance-view";
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -12,9 +13,28 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isMaintenance, setIsMaintenance] = useState(false);
+
+  // Cities from DB
+  interface CityOption { id: number; name: string; province_name: string; }
+  const [cities, setCities] = useState<CityOption[]>([]);
+  const [citiesLoading, setCitiesLoading] = useState(true);
+
+  useEffect(() => {
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
+    fetch(`${apiBase.replace(/\/$/, "")}/cities`)
+      .then((r) => r.json())
+      .then((json) => {
+        const list: CityOption[] = json?.data?.cities || [];
+        setCities(list);
+        if (list.length > 0) setCityId(list[0].id);
+      })
+      .catch(() => {})
+      .finally(() => setCitiesLoading(false));
+  }, []);
 
   // Form State
-  const [cityId, setCityId] = useState<number>(1);
+  const [cityId, setCityId] = useState<number>(0);
   const [familyMembersCount, setFamilyMembersCount] = useState<number>(3);
   const [goal, setGoal] = useState<"hemat" | "sehat" | "variatif" | "praktis">("hemat");
   const [budgetPeriod, setBudgetPeriod] = useState<"daily" | "weekly" | "monthly">("daily");
@@ -37,6 +57,7 @@ export default function OnboardingPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
+    setIsMaintenance(false);
     setIsSubmitting(true);
 
     let dailyBudget = budgetAmount;
@@ -76,6 +97,10 @@ export default function OnboardingPage() {
     setIsSubmitting(false);
 
     if (res.error) {
+      if (res.error.isMaintenance) {
+        setIsMaintenance(true);
+        return;
+      }
       setErrorMsg(res.error.message);
       return;
     }
@@ -87,6 +112,14 @@ export default function OnboardingPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+      </div>
+    );
+  }
+
+  if (isMaintenance) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4">
+        <MaintenanceView onRetry={() => setIsMaintenance(false)} />
       </div>
     );
   }
@@ -137,13 +170,20 @@ export default function OnboardingPage() {
                 <select
                   value={cityId}
                   onChange={(e) => setCityId(Number(e.target.value))}
-                  className="w-full p-3.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 outline-none"
+                  disabled={citiesLoading}
+                  className="w-full p-3.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 outline-none disabled:opacity-60"
                 >
-                  <option value={1}>Jakarta Selatan (DKI Jakarta)</option>
-                  <option value={2}>Jakarta Timur (DKI Jakarta)</option>
-                  <option value={3}>Surabaya (Jawa Timur)</option>
-                  <option value={4}>Bandung (Jawa Barat)</option>
-                  <option value={5}>Medan (Sumatera Utara)</option>
+                  {citiesLoading ? (
+                    <option value={0}>Memuat kota...</option>
+                  ) : cities.length === 0 ? (
+                    <option value={0}>Tidak ada data kota</option>
+                  ) : (
+                    cities.map((city) => (
+                      <option key={city.id} value={city.id}>
+                        {city.name} ({city.province_name})
+                      </option>
+                    ))
+                  )}
                 </select>
               </div>
 
