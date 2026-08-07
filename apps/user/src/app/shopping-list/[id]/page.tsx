@@ -9,8 +9,11 @@ import { useAuth } from "@/components/providers/auth-provider";
 import { MaintenanceView } from "@/components/common/maintenance-view";
 
 export interface ShoppingListItem {
-  name: string;
+  ingredient_name?: string;
+  name?: string;
   quantity?: string;
+  unit?: string;
+  is_checked?: boolean;
   checked?: boolean;
   estimated_price?: number;
 }
@@ -70,25 +73,39 @@ export default function ShoppingListDetailPage({
   const handleToggleItem = async (index: number) => {
     if (!shoppingList) return;
 
-    const currentChecked = !!shoppingList.items[index]?.checked;
+    const item = shoppingList.items[index];
+    if (!item) return;
+
+    const ingredientName = item.ingredient_name || item.name;
+    if (!ingredientName) return;
+
+    const currentChecked = !!(item.is_checked ?? item.checked);
     const newChecked = !currentChecked;
 
     // Optimistic UI update
     const updatedItems = [...shoppingList.items];
-    updatedItems[index] = { ...updatedItems[index], checked: newChecked };
+    updatedItems[index] = {
+      ...updatedItems[index],
+      is_checked: newChecked,
+      checked: newChecked,
+    };
     setShoppingList({ ...shoppingList, items: updatedItems });
 
     const res = await fetchWithAuth(`/shopping-list/${id}/item`, {
       method: "PATCH",
       body: JSON.stringify({
-        item_index: index,
-        checked: newChecked,
+        ingredient_name: ingredientName,
+        is_checked: newChecked,
       }),
     });
 
     if (res.error) {
       // Revert on error
-      updatedItems[index] = { ...updatedItems[index], checked: currentChecked };
+      updatedItems[index] = {
+        ...updatedItems[index],
+        is_checked: currentChecked,
+        checked: currentChecked,
+      };
       setShoppingList({ ...shoppingList, items: updatedItems });
       alert("Gagal memperbarui status item: " + res.error.message);
     }
@@ -99,9 +116,12 @@ export default function ShoppingListDetailPage({
 
     let text = `🛒 *Daftar Belanja — ${shoppingList.recipe_name || "MasakApa"}*\n\n`;
     shoppingList.items.forEach((item) => {
-      const status = item.checked ? "✅" : "⏹️";
+      const isChecked = !!(item.is_checked ?? item.checked);
+      const name = item.ingredient_name || item.name || "Bahan";
+      const status = isChecked ? "✅" : "⏹️";
+      const qtyStr = item.quantity ? ` (${item.quantity}${item.unit ? ` ${item.unit}` : ""})` : "";
       const priceStr = item.estimated_price ? ` (~Rp ${item.estimated_price.toLocaleString("id-ID")})` : "";
-      text += `${status} ${item.name} ${item.quantity ? `(${item.quantity})` : ""}${priceStr}\n`;
+      text += `${status} ${name}${qtyStr}${priceStr}\n`;
     });
 
     navigator.clipboard.writeText(text);
@@ -149,12 +169,12 @@ export default function ShoppingListDetailPage({
 
   const items = shoppingList.items || [];
   const totalCount = items.length;
-  const checkedCount = items.filter((i) => i.checked).length;
+  const checkedCount = items.filter((i) => i.is_checked ?? i.checked).length;
   const progressPercent = totalCount > 0 ? Math.round((checkedCount / totalCount) * 100) : 0;
 
   const totalEstimatedPrice = shoppingList.total_estimated_price || items.reduce((acc, i) => acc + (i.estimated_price || 0), 0);
   const remainingEstimatedPrice = items
-    .filter((i) => !i.checked)
+    .filter((i) => !(i.is_checked ?? i.checked))
     .reduce((acc, i) => acc + (i.estimated_price || 0), 0);
 
   return (
@@ -220,7 +240,10 @@ export default function ShoppingListDetailPage({
             </p>
 
             {items.map((item, index) => {
-              const isChecked = !!item.checked;
+              const isChecked = !!(item.is_checked ?? item.checked);
+              const name = item.ingredient_name || item.name || "Bahan";
+              const qtyStr = item.quantity ? ` (${item.quantity}${item.unit ? ` ${item.unit}` : ""})` : "";
+
               return (
                 <div
                   key={index}
@@ -239,7 +262,7 @@ export default function ShoppingListDetailPage({
                       className="w-5 h-5 rounded-lg text-emerald-600 focus:ring-emerald-500 cursor-pointer"
                     />
                     <span className={`font-semibold text-sm ${isChecked ? "line-through" : ""}`}>
-                      {item.name} {item.quantity ? `(${item.quantity})` : ""}
+                      {name}{qtyStr}
                     </span>
                   </div>
 
