@@ -32,6 +32,10 @@ export default function GeneratePage() {
       if (res.error.message.includes("429") || res.error.message.toLowerCase().includes("limit")) {
         setIsRateLimited(true);
       }
+      if (res.error.message.toLowerCase().includes("onboarding")) {
+        router.push("/onboarding");
+        return;
+      }
       setErrorMsg(res.error.message);
       return;
     }
