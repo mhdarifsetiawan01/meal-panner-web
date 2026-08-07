@@ -106,6 +106,9 @@ importers:
 
   packages/shared-types:
     devDependencies:
+      '@types/node':
+        specifier: ^20
+        version: 20.19.43
       typescript:
         specifier: ^5
         version: 5.9.3
@@ -116,6 +119,9 @@ importers:
         specifier: ^2.45.0
         version: 2.112.2
     devDependencies:
+      '@types/node':
+        specifier: ^20
+        version: 20.19.43
       typescript:
         specifier: ^5
         version: 5.9.3
