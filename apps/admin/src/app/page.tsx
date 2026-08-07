@@ -1,101 +1,101 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import React from "react";
+import Link from "next/link";
+import { AdminGuard } from "@/components/auth/admin-guard";
+import { AdminSidebar } from "@/components/layout/admin-sidebar";
+import { AdminHeader } from "@/components/layout/admin-header";
+
+export default function AdminDashboardPage() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <AdminGuard>
+      <div className="flex min-h-screen bg-slate-950 text-slate-100">
+        <AdminSidebar />
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+        <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+          <AdminHeader />
+
+          <main className="p-6 sm:p-8 space-y-8 max-w-6xl">
+            {/* Title */}
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+                Dashboard Administrasi 📊
+              </h1>
+              <p className="text-sm text-slate-400 mt-1">
+                Ringkasan modul operasional sistem MasakApa Platform.
+              </p>
+            </div>
+
+            {/* Quick Metrics Cards Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-slate-400">PRICE WATCH</span>
+                  <span className="text-xl">🏷️</span>
+                </div>
+                <p className="text-2xl font-extrabold text-slate-100">Kampanye Aktif</p>
+                <Link href="/price-watch" className="text-xs text-indigo-400 font-semibold hover:underline inline-block pt-1">
+                  Kelola Kampanye &rarr;
+                </Link>
+              </div>
+
+              <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-slate-400">MONITORING</span>
+                  <span className="text-xl">📈</span>
+                </div>
+                <p className="text-2xl font-extrabold text-slate-100">Laporan Harga</p>
+                <Link href="/submissions" className="text-xs text-indigo-400 font-semibold hover:underline inline-block pt-1">
+                  Cek Submission &rarr;
+                </Link>
+              </div>
+
+              <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-slate-400">SUBSCRIPTIONS</span>
+                  <span className="text-xl">💎</span>
+                </div>
+                <p className="text-2xl font-extrabold text-slate-100">Paket &amp; Kupon</p>
+                <Link href="/subscriptions" className="text-xs text-indigo-400 font-semibold hover:underline inline-block pt-1">
+                  Kelola Plan &rarr;
+                </Link>
+              </div>
+
+              <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-slate-400">AI CONFIG</span>
+                  <span className="text-xl">🤖</span>
+                </div>
+                <p className="text-2xl font-extrabold text-slate-100">OpenAI / Groq</p>
+                <Link href="/ai-config" className="text-xs text-indigo-400 font-semibold hover:underline inline-block pt-1">
+                  Switch Provider &rarr;
+                </Link>
+              </div>
+            </div>
+
+            {/* Platform Status Banner */}
+            <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 space-y-4">
+              <h3 className="font-bold text-lg text-slate-100 flex items-center gap-2">
+                <span>⚡ System Health &amp; Services</span>
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                <div className="p-4 rounded-xl bg-slate-950 border border-slate-800/80 space-y-1">
+                  <p className="text-slate-400">Backend API</p>
+                  <p className="text-emerald-400 font-bold">● Running (Port 8080)</p>
+                </div>
+                <div className="p-4 rounded-xl bg-slate-950 border border-slate-800/80 space-y-1">
+                  <p className="text-slate-400">Database PostgreSQL</p>
+                  <p className="text-emerald-400 font-bold">● Connected (Port 5434)</p>
+                </div>
+                <div className="p-4 rounded-xl bg-slate-950 border border-slate-800/80 space-y-1">
+                  <p className="text-slate-400">Consensus Job Engine</p>
+                  <p className="text-indigo-400 font-bold">● Ready (POST trigger active)</p>
+                </div>
+              </div>
+            </div>
+          </main>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+      </div>
+    </AdminGuard>
   );
 }
