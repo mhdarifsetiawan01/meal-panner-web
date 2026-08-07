@@ -55,10 +55,11 @@ export async function getSessionToken(): Promise<string | null> {
  */
 export async function signInWithGoogle(redirectTo?: string): Promise<void> {
   const supabase = getSupabaseClient();
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
   await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: redirectTo ?? window.location.origin,
+      redirectTo: redirectTo ?? `${origin}/auth/callback`,
     },
   });
 }
