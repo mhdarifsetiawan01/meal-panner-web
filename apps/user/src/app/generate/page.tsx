@@ -9,6 +9,7 @@ import { fetchWithAuth } from "@/lib/api";
 import { useAuth } from "@/components/providers/auth-provider";
 
 import { MaintenanceView } from "@/components/common/maintenance-view";
+import { PreferenceModal, PreferenceData } from "@/components/menu/preference-modal";
 
 export default function GeneratePage() {
   const router = useRouter();
@@ -19,6 +20,16 @@ export default function GeneratePage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isRateLimited, setIsRateLimited] = useState(false);
   const [isMaintenance, setIsMaintenance] = useState(false);
+
+  const [userPref, setUserPref] = useState<PreferenceData | null>(null);
+  const [isPrefModalOpen, setIsPrefModalOpen] = useState(false);
+
+  const fetchPreferences = async () => {
+    const res = await fetchWithAuth<PreferenceData>("/preferences");
+    if (res.data) {
+      setUserPref(res.data);
+    }
+  };
 
   const handleGenerate = async () => {
     setErrorMsg(null);
@@ -55,6 +66,7 @@ export default function GeneratePage() {
 
   useEffect(() => {
     if (!authLoading && user) {
+      fetchPreferences();
       handleGenerate();
     }
   }, [authLoading, user]);
@@ -123,6 +135,45 @@ export default function GeneratePage() {
             )}
           </button>
         </div>
+
+        {/* Current Preference Summary Bar */}
+        {userPref && (
+          <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs sm:text-sm text-slate-600 dark:text-slate-300">
+              <div className="flex items-center gap-1.5 font-bold text-slate-900 dark:text-slate-100">
+                <span>💰 Budget:</span>
+                <span className="text-emerald-600 dark:text-emerald-400 font-extrabold text-sm sm:text-base">
+                  Rp {userPref.budget_amount.toLocaleString("id-ID")}
+                </span>
+                <span className="text-slate-400 text-xs font-normal">/{userPref.budget_period}</span>
+              </div>
+
+              <div className="flex items-center gap-1">
+                <span>👥</span>
+                <span><strong>{userPref.household_size}</strong> Porsi/Orang</span>
+              </div>
+
+              <div className="flex items-center gap-1">
+                <span>🎯</span>
+                <span className="capitalize font-semibold text-slate-800 dark:text-slate-200">{userPref.goal}</span>
+              </div>
+
+              {userPref.restrictions && userPref.restrictions.length > 0 && (
+                <div className="flex items-center gap-1">
+                  <span>🥗</span>
+                  <span>{userPref.restrictions.join(", ")}</span>
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={() => setIsPrefModalOpen(true)}
+              className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs transition-all flex items-center justify-center gap-1.5 self-start sm:self-auto shrink-0 border border-slate-200/60 dark:border-slate-700/60"
+            >
+              <span>✏️ Ubah Budget / Preferensi</span>
+            </button>
+          </div>
+        )}
 
         {/* Loading State */}
         {isGenerating && (
@@ -194,6 +245,17 @@ export default function GeneratePage() {
           </div>
         )}
       </main>
+
+      {/* Preference Modification Modal */}
+      <PreferenceModal
+        isOpen={isPrefModalOpen}
+        onClose={() => setIsPrefModalOpen(false)}
+        currentPref={userPref}
+        onSaved={() => {
+          fetchPreferences();
+          handleGenerate();
+        }}
+      />
     </div>
   );
 }

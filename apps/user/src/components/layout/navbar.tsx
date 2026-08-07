@@ -30,6 +30,12 @@ export function Navbar() {
           >
             Riwayat
           </Link>
+          <Link
+            href="/onboarding"
+            className="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors px-2 py-1"
+          >
+            Preferensi
+          </Link>
 
           {user ? (
             <div className="flex items-center gap-3">
