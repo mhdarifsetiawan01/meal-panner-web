@@ -50,15 +50,22 @@ export default function OnboardingPage() {
       monthlyBudget = budgetAmount;
     }
 
+    const budgetPeriodMap: Record<string, string> = {
+      daily: "harian",
+      weekly: "mingguan",
+      monthly: "bulanan",
+    };
+
     const payload = {
       city_id: cityId,
-      family_members_count: familyMembersCount,
-      dietary_restrictions: dietaryRestrictions,
+      household_size: familyMembersCount,
+      restrictions: dietaryRestrictions,
       cooking_equipment: cookingEquipment,
       goal,
+      budget_amount: budgetAmount,
+      budget_period: budgetPeriodMap[budgetPeriod] || "harian",
       monthly_budget: monthlyBudget,
       daily_budget: dailyBudget,
-      budget_period: budgetPeriod,
     };
 
     const res = await fetchWithAuth("/onboarding", {
