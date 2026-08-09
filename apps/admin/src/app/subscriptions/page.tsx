@@ -5,23 +5,9 @@ import { AdminGuard } from "@/components/auth/admin-guard";
 import { AdminSidebar } from "@/components/layout/admin-sidebar";
 import { AdminHeader } from "@/components/layout/admin-header";
 import { fetchAdminWithAuth } from "@/lib/api";
+import { SubscriptionPlan, Coupon } from "@masakapa/shared-types";
 
-export interface SubscriptionPlan {
-  id: number;
-  name: string;
-  price_monthly: number;
-  daily_generate_limit: number;
-  is_active: boolean;
-}
-
-export interface Coupon {
-  id: number;
-  code: string;
-  discount_percentage: number;
-  max_redemptions: number;
-  times_redeemed: number;
-  is_active: boolean;
-}
+export type { SubscriptionPlan, Coupon };
 
 export default function AdminSubscriptionsPage() {
   const [activeTab, setActiveTab] = useState<"plans" | "coupons">("plans");
@@ -79,8 +65,8 @@ export default function AdminSubscriptionsPage() {
   const openEditPlanModal = (plan: SubscriptionPlan) => {
     setEditingPlan(plan);
     setPlanName(plan.name);
-    setPlanPriceMonthly(plan.price_monthly);
-    setPlanDailyLimit(plan.daily_generate_limit);
+    setPlanPriceMonthly(plan.price_monthly ?? plan.price ?? 0);
+    setPlanDailyLimit(plan.daily_generate_limit ?? 3);
     setPlanActive(plan.is_active);
     setErrorMsg(null);
     setIsPlanModalOpen(true);
@@ -133,8 +119,8 @@ export default function AdminSubscriptionsPage() {
   const openEditCouponModal = (coupon: Coupon) => {
     setEditingCoupon(coupon);
     setCouponCode(coupon.code);
-    setCouponDiscount(coupon.discount_percentage);
-    setCouponMaxRedemptions(coupon.max_redemptions);
+    setCouponDiscount(coupon.discount_percentage ?? coupon.discount_value ?? 0);
+    setCouponMaxRedemptions(coupon.max_redemptions ?? coupon.max_uses ?? 0);
     setCouponActive(coupon.is_active);
     setErrorMsg(null);
     setIsCouponModalOpen(true);
@@ -263,11 +249,11 @@ export default function AdminSubscriptionsPage() {
 
                     <div className="space-y-1">
                       <p className="text-2xl font-extrabold text-amber-400">
-                        Rp {plan.price_monthly.toLocaleString("id-ID")}{" "}
+                        Rp {(plan.price_monthly ?? plan.price ?? 0).toLocaleString("id-ID")}{" "}
                         <span className="text-xs text-slate-500 font-normal">/ bulan</span>
                       </p>
                       <p className="text-xs text-slate-400">
-                        Kuota AI Generate: <strong>{plan.daily_generate_limit}x / hari</strong>
+                        Kuota AI Generate: <strong>{plan.daily_generate_limit ?? 3}x / hari</strong>
                       </p>
                     </div>
 
@@ -309,10 +295,10 @@ export default function AdminSubscriptionsPage() {
                             {coupon.code}
                           </td>
                           <td className="py-4 px-6 font-extrabold text-emerald-400">
-                            {coupon.discount_percentage}% OFF
+                            {coupon.discount_percentage ?? coupon.discount_value ?? 0}% OFF
                           </td>
                           <td className="py-4 px-6 text-slate-400">
-                            {coupon.times_redeemed} / {coupon.max_redemptions} kali
+                            {coupon.times_redeemed ?? coupon.used_count ?? 0} / {coupon.max_redemptions ?? coupon.max_uses ?? 0} kali
                           </td>
                           <td className="py-4 px-6">
                             <span

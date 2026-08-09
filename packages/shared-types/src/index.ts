@@ -11,8 +11,9 @@ export interface Province {
 
 export interface City {
   id: number;
-  province_id: number;
+  province_id?: number;
   name: string;
+  province_name?: string;
 }
 
 // ---------- User ----------
@@ -96,28 +97,33 @@ export interface ShoppingItem {
 // ---------- Subscription ----------
 export interface SubscriptionPlan {
   id: number;
-  name: "free" | "premium";
+  name: string;
   price: number;
+  price_monthly?: number;
+  daily_generate_limit?: number;
   billing_period?: "bulanan" | "tahunan";
-  features: PlanFeatures;
+  features?: PlanFeatures;
   is_active: boolean;
-  created_at: string;
+  created_at?: string;
 }
 
 export interface PlanFeatures {
-  max_generate_per_day: number;
-  history_access: boolean;
-  price_watch_submit: boolean;
+  max_generate_per_day?: number;
+  history_access?: boolean;
+  price_watch_submit?: boolean;
   [key: string]: unknown;
 }
 
 export interface Coupon {
   id: number;
   code: string;
-  discount_type: "percent" | "fixed";
-  discount_value: number;
+  discount_type?: "percent" | "fixed";
+  discount_value?: number;
+  discount_percentage?: number;
   max_uses?: number;
-  used_count: number;
+  max_redemptions?: number;
+  used_count?: number;
+  times_redeemed?: number;
   expires_at?: string;
   is_active: boolean;
 }
@@ -148,9 +154,10 @@ export interface PriceWatchCampaign {
   title: string;
   description?: string;
   is_active: boolean;
-  created_by: string;
-  created_at: string;
-  updated_at: string;
+  items?: PriceWatchItem[];
+  created_by?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface PriceWatchItem {
@@ -159,8 +166,8 @@ export interface PriceWatchItem {
   ingredient_name: string;
   unit: string;
   icon_url?: string;
-  display_order: number;
-  is_active: boolean;
+  display_order?: number;
+  is_active?: boolean;
 }
 
 export interface PriceSubmission {
@@ -212,8 +219,45 @@ export interface MasterIngredientWithAliases extends MasterIngredient {
   aliases: IngredientAlias[];
 }
 
+// ---------- AI Config ----------
+export interface AIProviderConfig {
+  id?: number;
+  provider_name: string;
+  model_name: string;
+  is_active: boolean;
+  description?: string;
+  icon?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// ---------- Price Watch Submissions Detail ----------
+export interface UserPriceSubmissionDetail {
+  id: number;
+  watch_item_id: number;
+  ingredient_name: string;
+  unit: string;
+  campaign_title: string;
+  city_id: number;
+  submitted_price: number;
+  status: "pending" | "validated" | "rejected";
+  created_at: string;
+}
+
+export interface AdminSubmissionDetail {
+  id: number;
+  user_id: string;
+  ingredient_name: string;
+  unit: string;
+  city_name: string;
+  city_id: number;
+  submitted_price: number;
+  status: "pending" | "validated" | "rejected";
+  created_at: string;
+}
+
 // ---------- API Response wrapper ----------
-export interface ApiResponse<T> {
+export interface ApiResponse<T = any> {
   data: T | null;
   error: ApiError | null;
 }
@@ -221,5 +265,8 @@ export interface ApiResponse<T> {
 export interface ApiError {
   message: string;
   code?: string;
+  current?: number;
+  max?: number;
+  isMaintenance?: boolean;
 }
 

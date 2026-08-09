@@ -5,42 +5,15 @@ import { Navbar } from "@/components/layout/navbar";
 import { fetchWithAuth } from "@/lib/api";
 import { useAuth } from "@/components/providers/auth-provider";
 
-export interface PriceWatchItem {
-  id: number;
-  campaign_id: number;
-  ingredient_name: string;
-  unit: string;
-  icon_url?: string;
-}
+import {
+  PriceWatchItem,
+  PriceWatchCampaign as Campaign,
+  UserPriceSubmissionDetail as UserSubmission,
+  UserCredits as CreditSummary,
+  City as CityOption,
+} from "@masakapa/shared-types";
 
-export interface Campaign {
-  id: number;
-  title: string;
-  description: string;
-  items: PriceWatchItem[];
-}
-
-export interface UserSubmission {
-  id: number;
-  watch_item_id: number;
-  ingredient_name: string;
-  unit: string;
-  campaign_title: string;
-  city_id: number;
-  submitted_price: number;
-  status: "pending" | "validated" | "rejected";
-  created_at: string;
-}
-
-export interface CreditSummary {
-  balance: number;
-}
-
-export interface CityOption {
-  id: number;
-  name: string;
-  province_name: string;
-}
+export type { PriceWatchItem, Campaign, UserSubmission, CreditSummary, CityOption };
 
 export default function PriceWatchPage() {
   const { user, loading: authLoading } = useAuth();

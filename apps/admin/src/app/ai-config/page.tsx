@@ -5,15 +5,9 @@ import { AdminGuard } from "@/components/auth/admin-guard";
 import { AdminSidebar } from "@/components/layout/admin-sidebar";
 import { AdminHeader } from "@/components/layout/admin-header";
 import { fetchAdminWithAuth } from "@/lib/api";
+import { AIProviderConfig } from "@masakapa/shared-types";
 
-export interface AIProviderConfig {
-  id?: number;
-  provider_name: string;
-  model_name: string;
-  is_active: boolean;
-  description?: string;
-  icon?: string;
-}
+export type { AIProviderConfig };
 
 const defaultProviders: AIProviderConfig[] = [
   { provider_name: "openai", model_name: "gpt-4o-mini", is_active: true, description: "Fast, highly reliable OpenAI model for structured recipe generation.", icon: "🟢" },

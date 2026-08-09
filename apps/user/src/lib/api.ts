@@ -1,17 +1,9 @@
-import { getSessionToken } from "@masakapa/supabase-client";
+import { getSessionToken, signOut } from "@masakapa/supabase-client";
+import { ApiResponse } from "@masakapa/shared-types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
 
-export interface ApiResponse<T = any> {
-  data: T | null;
-  error: {
-    message: string;
-    code?: string;
-    current?: number;
-    max?: number;
-    isMaintenance?: boolean;
-  } | null;
-}
+export type { ApiResponse };
 
 export async function fetchWithAuth<T = any>(
   endpoint: string,
@@ -37,6 +29,20 @@ export async function fetchWithAuth<T = any>(
       ...options,
       headers,
     });
+
+    if (res.status === 401) {
+      // Auto-clear stale session if unauthorized
+      if (typeof window !== "undefined") {
+        signOut().catch(() => {});
+      }
+      return {
+        data: null,
+        error: {
+          message: "Sesi Anda telah berakhir. Silakan login kembali.",
+          code: "UNAUTHORIZED",
+        },
+      };
+    }
 
     if (res.status === 502 || res.status === 503 || res.status === 504) {
       return {

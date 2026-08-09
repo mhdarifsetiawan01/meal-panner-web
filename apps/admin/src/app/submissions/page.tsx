@@ -5,18 +5,9 @@ import { AdminGuard } from "@/components/auth/admin-guard";
 import { AdminSidebar } from "@/components/layout/admin-sidebar";
 import { AdminHeader } from "@/components/layout/admin-header";
 import { fetchAdminWithAuth } from "@/lib/api";
+import { AdminSubmissionDetail as SubmissionMonitoring } from "@masakapa/shared-types";
 
-export interface SubmissionMonitoring {
-  id: number;
-  user_id: string;
-  ingredient_name: string;
-  unit: string;
-  city_name: string;
-  city_id: number;
-  submitted_price: number;
-  status: "pending" | "validated" | "rejected";
-  created_at: string;
-}
+export type { SubmissionMonitoring };
 
 const cityNames: Record<number, string> = {
   1: "Jakarta Selatan",

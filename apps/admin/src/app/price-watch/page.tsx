@@ -5,25 +5,9 @@ import { AdminGuard } from "@/components/auth/admin-guard";
 import { AdminSidebar } from "@/components/layout/admin-sidebar";
 import { AdminHeader } from "@/components/layout/admin-header";
 import { fetchAdminWithAuth } from "@/lib/api";
+import { PriceWatchItem, PriceWatchCampaign } from "@masakapa/shared-types";
 
-export interface PriceWatchItem {
-  id: number;
-  campaign_id: number;
-  ingredient_name: string;
-  unit: string;
-  icon_url?: string;
-  display_order: number;
-  is_active: boolean;
-}
-
-export interface PriceWatchCampaign {
-  id: number;
-  title: string;
-  description: string;
-  is_active: boolean;
-  items?: PriceWatchItem[];
-  created_at: string;
-}
+export type { PriceWatchItem, PriceWatchCampaign };
 
 export default function AdminPriceWatchPage() {
   const [campaigns, setCampaigns] = useState<PriceWatchCampaign[]>([]);
@@ -81,7 +65,7 @@ export default function AdminPriceWatchPage() {
   const openEditCampaignModal = (c: PriceWatchCampaign) => {
     setEditingCampaign(c);
     setCampTitle(c.title);
-    setCampDesc(c.description);
+    setCampDesc(c.description || "");
     setCampActive(c.is_active);
     setErrorMsg(null);
     setIsCampaignModalOpen(true);
@@ -153,8 +137,8 @@ export default function AdminPriceWatchPage() {
     setEditingItem(item);
     setItemIngredientName(item.ingredient_name);
     setItemUnit(item.unit);
-    setItemDisplayOrder(item.display_order);
-    setItemActive(item.is_active);
+    setItemDisplayOrder(item.display_order ?? 0);
+    setItemActive(item.is_active ?? true);
     setErrorMsg(null);
     setIsItemModalOpen(true);
   };

@@ -22,8 +22,17 @@ export default function MasterIngredientsPage() {
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>("Semua");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState<string>("");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  // Debounce search query input (300ms)
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
 
   // Modal State for Add / Edit
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -43,7 +52,7 @@ export default function MasterIngredientsPage() {
     setErrorMsg(null);
     let url = "/admin/master-ingredients?";
     if (selectedCategory !== "Semua") url += `category=${encodeURIComponent(selectedCategory)}&`;
-    if (searchQuery.trim()) url += `search=${encodeURIComponent(searchQuery.trim())}&`;
+    if (debouncedSearchQuery.trim()) url += `search=${encodeURIComponent(debouncedSearchQuery.trim())}&`;
 
     const res = await fetchAdminWithAuth<MasterIngredientWithAliases[]>(url);
     setLoading(false);
@@ -56,7 +65,7 @@ export default function MasterIngredientsPage() {
 
   useEffect(() => {
     fetchIngredients();
-  }, [selectedCategory, searchQuery]);
+  }, [selectedCategory, debouncedSearchQuery]);
 
   const openCreateModal = () => {
     setEditingItem(null);
