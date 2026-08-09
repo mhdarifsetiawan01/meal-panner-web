@@ -5,7 +5,11 @@ import React, { useState } from "react";
 export interface Ingredient {
   name: string;
   quantity?: string;
+  unit?: string;
   estimated_price?: number;
+  price_source?: string;
+  unit_price?: number;
+  unit_standard?: string;
 }
 
 export interface RecipeOption {
@@ -81,13 +85,29 @@ export function RecipeOptionCard({
 
         <div className="space-y-2 bg-slate-50 dark:bg-slate-950/50 p-3 rounded-2xl border border-slate-100 dark:border-slate-800/60 text-xs">
           {option.ingredients.map((ing, i) => (
-            <div key={i} className="flex items-center justify-between py-1 border-b border-slate-200/50 dark:border-slate-800/50 last:border-none">
-              <span className="font-medium text-slate-800 dark:text-slate-200">
-                • {ing.name} {ing.quantity ? `(${ing.quantity})` : ""}
-              </span>
-              <span className="font-semibold text-slate-600 dark:text-slate-400">
-                {ing.estimated_price ? `Rp ${ing.estimated_price.toLocaleString("id-ID")}` : "-"}
-              </span>
+            <div key={i} className="py-1 border-b border-slate-200/50 dark:border-slate-800/50 last:border-none space-y-0.5">
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-slate-800 dark:text-slate-200 flex items-center gap-1.5 flex-wrap">
+                  • {ing.name} {ing.quantity ? `(${ing.quantity})` : ""}
+                  {ing.price_source === "crowdsource" && (
+                    <span
+                      className="px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 flex items-center gap-0.5 shadow-sm"
+                      title="Harga diverifikasi oleh laporan komunitas lokal"
+                    >
+                      🟢 Komunitas
+                    </span>
+                  )}
+                </span>
+                <span className="font-semibold text-slate-600 dark:text-slate-400 shrink-0 ml-2">
+                  {ing.estimated_price ? `Rp ${ing.estimated_price.toLocaleString("id-ID")}` : "-"}
+                </span>
+              </div>
+
+              {ing.unit_price && ing.unit_price > 0 && (
+                <div className="text-[10px] text-slate-400 dark:text-slate-500 pl-3 italic">
+                  Acuan pasar: Rp {ing.unit_price.toLocaleString("id-ID")}/{ing.unit_standard || "kg"}
+                </div>
+              )}
             </div>
           ))}
         </div>

@@ -53,7 +53,22 @@ export interface RecipeIngredient {
   ingredient_name: string;
   quantity: string;
   unit?: string;
+  estimated_price?: number;
+  price_source?: string;
+  unit_price?: number;
+  unit_standard?: string;
 }
+
+export interface MenuIngredientItem {
+  name: string;
+  quantity?: string;
+  unit?: string;
+  estimated_price?: number;
+  price_source?: string;
+  unit_price?: number;
+  unit_standard?: string;
+}
+
 
 export interface RecipeWithIngredients extends Recipe {
   ingredients: RecipeIngredient[];
