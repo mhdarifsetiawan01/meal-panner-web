@@ -27,11 +27,37 @@ export default function OnboardingPage() {
       .then((json) => {
         const list: CityOption[] = json?.data?.cities || [];
         setCities(list);
-        if (list.length > 0) setCityId(list[0].id);
       })
       .catch(() => {})
       .finally(() => setCitiesLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      fetchWithAuth<any>("/preferences").then((res) => {
+        if (res.data) {
+          if (res.data.city_id) setCityId(res.data.city_id);
+          if (res.data.household_size > 0) setFamilyMembersCount(res.data.household_size);
+          if (res.data.goal) setGoal(res.data.goal);
+          if (res.data.budget_amount > 0) setBudgetAmount(res.data.budget_amount);
+          if (res.data.budget_period) {
+            const periodMap: Record<string, "daily" | "weekly" | "monthly"> = {
+              harian: "daily",
+              mingguan: "weekly",
+              bulanan: "monthly",
+              daily: "daily",
+              weekly: "weekly",
+              monthly: "monthly",
+            };
+            setBudgetPeriod(periodMap[res.data.budget_period] || "daily");
+          }
+          if (res.data.restrictions && Array.isArray(res.data.restrictions)) {
+            setDietaryRestrictions(res.data.restrictions);
+          }
+        }
+      });
+    }
+  }, [authLoading, user]);
 
   // Form State
   const [cityId, setCityId] = useState<number>(0);

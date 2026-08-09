@@ -34,7 +34,7 @@ export default function HistoryPage() {
     setIsUpgradeRequired(false);
     setIsMaintenance(false);
 
-    const res = await fetchWithAuth<{ items: HistoryItem[]; is_premium?: boolean }>("/history?limit=20&offset=0");
+    const res = await fetchWithAuth<{ history?: HistoryItem[]; items?: HistoryItem[] }>("/history?limit=20&offset=0");
     setLoading(false);
 
     if (res.error) {
@@ -54,9 +54,8 @@ export default function HistoryPage() {
       return;
     }
 
-    if (res.data?.items) {
-      setHistoryItems(res.data.items);
-    }
+    const items = res.data?.history || res.data?.items || [];
+    setHistoryItems(items);
   };
 
   useEffect(() => {

@@ -37,13 +37,26 @@ export function PreferenceModal({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    if (currentPref) {
-      if (currentPref.goal) setGoal(currentPref.goal);
-      if (currentPref.budget_amount > 0) setBudgetAmount(currentPref.budget_amount);
-      if (currentPref.budget_period) setBudgetPeriod(currentPref.budget_period);
-      if (currentPref.household_size > 0) setHouseholdSize(currentPref.household_size);
-      if (currentPref.restrictions) setDietaryRestrictions(currentPref.restrictions);
-      if (currentPref.city_id) setCityId(currentPref.city_id);
+    if (isOpen) {
+      if (currentPref) {
+        if (currentPref.goal) setGoal(currentPref.goal);
+        if (currentPref.budget_amount > 0) setBudgetAmount(currentPref.budget_amount);
+        if (currentPref.budget_period) setBudgetPeriod(currentPref.budget_period);
+        if (currentPref.household_size > 0) setHouseholdSize(currentPref.household_size);
+        if (currentPref.restrictions) setDietaryRestrictions(currentPref.restrictions);
+        if (currentPref.city_id) setCityId(currentPref.city_id);
+      } else {
+        fetchWithAuth<PreferenceData>("/preferences").then((res) => {
+          if (res.data) {
+            if (res.data.goal) setGoal(res.data.goal);
+            if (res.data.budget_amount > 0) setBudgetAmount(res.data.budget_amount);
+            if (res.data.budget_period) setBudgetPeriod(res.data.budget_period);
+            if (res.data.household_size > 0) setHouseholdSize(res.data.household_size);
+            if (res.data.restrictions) setDietaryRestrictions(res.data.restrictions);
+            if (res.data.city_id) setCityId(res.data.city_id);
+          }
+        });
+      }
     }
   }, [currentPref, isOpen]);
 
