@@ -45,7 +45,7 @@ export default function ShoppingListDetailPage({
   // Price adjustment state
   const [editingPriceIndex, setEditingPriceIndex] = useState<number | null>(null);
   const [editingPriceInput, setEditingPriceInput] = useState<number | "">("");
-  const [submitToCommunity, setSubmitToCommunity] = useState(false);
+  const [submitToCommunity, setSubmitToCommunity] = useState(false); // default: unchecked
   const [rewardNotice, setRewardNotice] = useState<string | null>(null);
 
   const fetchShoppingList = async () => {
@@ -147,6 +147,7 @@ export default function ShoppingListDetailPage({
 
     const res = await fetchWithAuth<{
       new_total_estimated_price: number;
+      submitted_to_community: boolean;
     }>(`/shopping-list/${id}/item-price`, {
       method: "PATCH",
       body: JSON.stringify({
@@ -171,9 +172,13 @@ export default function ShoppingListDetailPage({
       return;
     }
 
-    if (wasSubmittedToCommunity) {
+    if (res.data?.submitted_to_community) {
       setRewardNotice(
-        `📢 Harga "${ingredientName}" di-update ke Rp ${newPrice.toLocaleString("id-ID")} & dikirimkan ke Pantau Harga Komunitas (Status: Pending konsensus).`
+        `📢 Harga "${ingredientName}" berhasil dikirimkan ke Pantau Harga Komunitas (Status: Pending konsensus).`
+      );
+    } else if (wasSubmittedToCommunity && !res.data?.submitted_to_community) {
+      setRewardNotice(
+        `ℹ️ Harga "${ingredientName}" disimpan. Bahan ini belum ada di daftar pantau komunitas.`
       );
     } else {
       setRewardNotice(
