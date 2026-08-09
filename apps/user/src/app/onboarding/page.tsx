@@ -27,6 +27,7 @@ export default function OnboardingPage() {
       .then((json) => {
         const list: CityOption[] = json?.data?.cities || [];
         setCities(list);
+        setCityId((prev) => (prev === 0 && list.length > 0 ? list[0].id : prev));
       })
       .catch(() => {})
       .finally(() => setCitiesLoading(false));
