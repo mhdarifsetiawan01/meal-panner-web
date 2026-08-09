@@ -191,6 +191,27 @@ export interface CreditTransaction {
   created_at: string;
 }
 
+// ---------- Master Ingredients & Aliases ----------
+export interface MasterIngredient {
+  id: number;
+  category: string;
+  name: string;
+  default_unit: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IngredientAlias {
+  id: number;
+  master_ingredient_id: number;
+  alias_name: string;
+  created_at: string;
+}
+
+export interface MasterIngredientWithAliases extends MasterIngredient {
+  aliases: IngredientAlias[];
+}
+
 // ---------- API Response wrapper ----------
 export interface ApiResponse<T> {
   data: T | null;
@@ -201,3 +222,4 @@ export interface ApiError {
   message: string;
   code?: string;
 }
+
