@@ -6,6 +6,9 @@ export interface ApiResponse<T = any> {
   data: T | null;
   error: {
     message: string;
+    code?: string;
+    current?: number;
+    max?: number;
     isMaintenance?: boolean;
   } | null;
 }
@@ -51,6 +54,9 @@ export async function fetchWithAuth<T = any>(
         data: null,
         error: {
           message: json.error?.message || `HTTP Error ${res.status}`,
+          code: json.error?.code,
+          current: json.error?.current,
+          max: json.error?.max,
         },
       };
     }

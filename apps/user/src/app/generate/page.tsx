@@ -19,6 +19,7 @@ export default function GeneratePage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isRateLimited, setIsRateLimited] = useState(false);
+  const [rateLimitInfo, setRateLimitInfo] = useState<{ current: number; max: number }>({ current: 3, max: 3 });
   const [isMaintenance, setIsMaintenance] = useState(false);
 
   const [userPref, setUserPref] = useState<PreferenceData | null>(null);
@@ -48,8 +49,14 @@ export default function GeneratePage() {
         setIsMaintenance(true);
         return;
       }
-      if (res.error.message.includes("429") || res.error.message.toLowerCase().includes("limit")) {
+      if (res.error.code === "RATE_LIMIT_EXCEEDED" || res.error.message.includes("429") || res.error.message.toLowerCase().includes("limit")) {
         setIsRateLimited(true);
+        if (res.error.max && res.error.max > 0) {
+          setRateLimitInfo({
+            current: res.error.current || res.error.max,
+            max: res.error.max,
+          });
+        }
       }
       if (res.error.message.toLowerCase().includes("onboarding")) {
         router.push("/onboarding");
@@ -217,10 +224,10 @@ export default function GeneratePage() {
               <span className="text-2xl">⚠️</span>
               <div>
                 <h3 className="font-bold text-amber-900 dark:text-amber-200 text-base">
-                  Batas Generate Harian Tercapai (3/3)
+                  Batas Generate Harian Tercapai ({rateLimitInfo.current}/{rateLimitInfo.max})
                 </h3>
                 <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">
-                  Anda telah mencapai batas 3x generate harian untuk akun Free. Upgrade ke Premium untuk batas tak terbatas (999x/hari).
+                  Anda telah mencapai batas {rateLimitInfo.max}x generate harian untuk akun Free. Upgrade ke Premium untuk batas tak terbatas (999x/hari).
                 </p>
               </div>
             </div>
