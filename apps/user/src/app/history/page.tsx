@@ -9,7 +9,8 @@ import { useAuth } from "@/components/providers/auth-provider";
 import { MaintenanceView } from "@/components/common/maintenance-view";
 
 export interface HistoryItem {
-  id: number;
+  id?: number;
+  meal_selection_id?: number;
   recipe_id: number;
   recipe_name: string;
   recipe_description?: string;
@@ -30,6 +31,7 @@ export default function HistoryPage() {
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const handleDelete = async (historyId: number, recipeName: string) => {
+    if (!historyId) return;
     if (!window.confirm(`Hapus "${recipeName}" dari riwayat masakan Anda?`)) {
       return;
     }
@@ -45,7 +47,7 @@ export default function HistoryPage() {
       return;
     }
 
-    setHistoryItems((prev) => prev.filter((item) => item.id !== historyId));
+    setHistoryItems((prev) => prev.filter((item) => (item.meal_selection_id || item.id) !== historyId));
   };
 
   const fetchHistory = async () => {
@@ -168,55 +170,58 @@ export default function HistoryPage() {
         {/* History Items Grid */}
         {!isUpgradeRequired && historyItems.length > 0 && (
           <div className="space-y-4">
-            {historyItems.map((item) => (
-              <div
-                key={item.id}
-                className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-md transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-              >
-                <div className="space-y-1">
-                  <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                    {new Date(item.selected_date || item.created_at).toLocaleDateString("id-ID", {
-                      weekday: "long",
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </span>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                    {item.recipe_name}
-                  </h3>
-                  {item.recipe_description && (
-                    <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1">
-                      {item.recipe_description}
-                    </p>
-                  )}
-                </div>
+            {historyItems.map((item, idx) => {
+              const historyId = item.meal_selection_id || item.id || idx;
+              return (
+                <div
+                  key={historyId}
+                  className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-md transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                >
+                  <div className="space-y-1">
+                    <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                      {new Date(item.selected_date || item.created_at).toLocaleDateString("id-ID", {
+                        weekday: "long",
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </span>
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                      {item.recipe_name}
+                    </h3>
+                    {item.recipe_description && (
+                      <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1">
+                        {item.recipe_description}
+                      </p>
+                    )}
+                  </div>
 
-                <div className="flex items-center justify-between sm:justify-end gap-3 border-t sm:border-t-0 border-slate-100 dark:border-slate-800 pt-3 sm:pt-0">
-                  <span className="text-base font-extrabold text-emerald-600 dark:text-emerald-400">
-                    Rp {item.total_estimated_price.toLocaleString("id-ID")}
-                  </span>
+                  <div className="flex items-center justify-between sm:justify-end gap-3 border-t sm:border-t-0 border-slate-100 dark:border-slate-800 pt-3 sm:pt-0">
+                    <span className="text-base font-extrabold text-emerald-600 dark:text-emerald-400">
+                      Rp {item.total_estimated_price.toLocaleString("id-ID")}
+                    </span>
 
-                  {item.shopping_list_id ? (
-                    <Link
-                      href={`/shopping-list/${item.shopping_list_id}`}
-                      className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs transition-colors"
+                    {item.shopping_list_id ? (
+                      <Link
+                        href={`/shopping-list/${item.shopping_list_id}`}
+                        className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs transition-colors"
+                      >
+                        🛒 Lihat Daftar Belanja
+                      </Link>
+                    ) : null}
+
+                    <button
+                      onClick={() => handleDelete(Number(historyId), item.recipe_name)}
+                      disabled={deletingId === Number(historyId)}
+                      title="Hapus dari riwayat"
+                      className="p-2 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors text-xs font-bold disabled:opacity-50 flex items-center justify-center min-w-[36px]"
                     >
-                      🛒 Lihat Daftar Belanja
-                    </Link>
-                  ) : null}
-
-                  <button
-                    onClick={() => handleDelete(item.id, item.recipe_name)}
-                    disabled={deletingId === item.id}
-                    title="Hapus dari riwayat"
-                    className="p-2 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors text-xs font-bold disabled:opacity-50 flex items-center justify-center min-w-[36px]"
-                  >
-                    {deletingId === item.id ? "⌛" : "🗑️"}
-                  </button>
+                      {deletingId === Number(historyId) ? "⌛" : "🗑️"}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </main>
