@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/components/providers/auth-provider";
 
 // Daftar path yang TIDAK memerlukan autentikasi
-const PUBLIC_PATHS = ["/login"];
+const PUBLIC_PATHS = ["/login", "/auth/callback"];
 
 /**
  * GlobalAuthGuard — proteksi semua halaman di admin app.
