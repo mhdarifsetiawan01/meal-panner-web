@@ -45,7 +45,6 @@ export default function ShoppingListDetailPage({
   // Price adjustment state
   const [editingPriceIndex, setEditingPriceIndex] = useState<number | null>(null);
   const [editingPriceInput, setEditingPriceInput] = useState<number | "">("");
-  const [submitToCommunity, setSubmitToCommunity] = useState(false); // default: unchecked
   const [rewardNotice, setRewardNotice] = useState<string | null>(null);
 
   const fetchShoppingList = async () => {
@@ -142,18 +141,15 @@ export default function ShoppingListDetailPage({
       total_estimated_price: newTotal,
       items: updatedItems,
     });
-    const wasSubmittedToCommunity = submitToCommunity;
     setEditingPriceIndex(null);
 
     const res = await fetchWithAuth<{
       new_total_estimated_price: number;
-      submitted_to_community: boolean;
     }>(`/shopping-list/${id}/item-price`, {
       method: "PATCH",
       body: JSON.stringify({
         ingredient_name: ingredientName,
         real_price: newPrice,
-        submit_to_community: wasSubmittedToCommunity,
       }),
     });
 
@@ -172,20 +168,8 @@ export default function ShoppingListDetailPage({
       return;
     }
 
-    if (res.data?.submitted_to_community) {
-      setRewardNotice(
-        `📢 Harga "${ingredientName}" berhasil dikirimkan ke Pantau Harga Komunitas (Status: Pending konsensus).`
-      );
-    } else if (wasSubmittedToCommunity && !res.data?.submitted_to_community) {
-      setRewardNotice(
-        `ℹ️ Harga "${ingredientName}" disimpan. Bahan ini belum ada di daftar pantau komunitas.`
-      );
-    } else {
-      setRewardNotice(
-        `✏️ Catatan harga "${ingredientName}" di-update ke Rp ${newPrice.toLocaleString("id-ID")}.`
-      );
-    }
-    setTimeout(() => setRewardNotice(null), 4000);
+    setRewardNotice(`✏️ Harga "${ingredientName}" diperbarui ke Rp ${newPrice.toLocaleString("id-ID")}.`);
+    setTimeout(() => setRewardNotice(null), 3000);
   };
 
   const handleCopyText = () => {
@@ -364,45 +348,34 @@ export default function ShoppingListDetailPage({
                   {/* Price & Adjustment Input */}
                   <div className="flex items-center gap-2">
                     {isEditingThisPrice ? (
-                      <div className="flex flex-col items-end gap-1.5" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-xs text-slate-400 font-bold">Rp</span>
-                          <input
-                            type="number"
-                            placeholder="Harga riil..."
-                            value={editingPriceInput}
-                            onChange={(e) => setEditingPriceInput(e.target.value === "" ? "" : Number(e.target.value))}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") handleSaveItemPrice(index);
-                              if (e.key === "Escape") setEditingPriceIndex(null);
-                            }}
-                            className="w-24 px-2 py-1 text-xs rounded-xl bg-slate-100 dark:bg-slate-800 border border-emerald-500 text-emerald-600 dark:text-emerald-400 font-bold focus:outline-none"
-                            autoFocus
-                          />
-                          <button
-                            onClick={() => handleSaveItemPrice(index)}
-                            className="px-2.5 py-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-600/30"
-                            title="Simpan"
-                          >
-                            ✓ Simpan
-                          </button>
-                          <button
-                            onClick={() => setEditingPriceIndex(null)}
-                            className="px-2 py-1 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-500 text-xs font-bold"
-                            title="Batal"
-                          >
-                            ✕
-                          </button>
-                        </div>
-                        <label className="flex items-center gap-1.5 text-[11px] text-slate-600 dark:text-slate-400 font-medium cursor-pointer select-none">
-                          <input
-                            type="checkbox"
-                            checked={submitToCommunity}
-                            onChange={(e) => setSubmitToCommunity(e.target.checked)}
-                            className="w-3.5 h-3.5 rounded text-emerald-600 focus:ring-emerald-500 cursor-pointer"
-                          />
-                          <span>📢 Laporkan ke Pantau Harga Komunitas</span>
-                        </label>
+                      <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                        <span className="text-xs text-slate-400 font-bold">Rp</span>
+                        <input
+                          type="number"
+                          placeholder="Harga riil..."
+                          value={editingPriceInput}
+                          onChange={(e) => setEditingPriceInput(e.target.value === "" ? "" : Number(e.target.value))}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") handleSaveItemPrice(index);
+                            if (e.key === "Escape") setEditingPriceIndex(null);
+                          }}
+                          className="w-24 px-2 py-1 text-xs rounded-xl bg-slate-100 dark:bg-slate-800 border border-emerald-500 text-emerald-600 dark:text-emerald-400 font-bold focus:outline-none"
+                          autoFocus
+                        />
+                        <button
+                          onClick={() => handleSaveItemPrice(index)}
+                          className="px-2.5 py-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-600/30"
+                          title="Simpan"
+                        >
+                          ✓ Simpan
+                        </button>
+                        <button
+                          onClick={() => setEditingPriceIndex(null)}
+                          className="px-2 py-1 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-500 text-xs font-bold"
+                          title="Batal"
+                        >
+                          ✕
+                        </button>
                       </div>
                     ) : (
                       <div className="flex items-center gap-2">
@@ -416,7 +389,7 @@ export default function ShoppingListDetailPage({
                             setEditingPriceInput(item.estimated_price || 0);
                           }}
                           className="p-1 rounded-lg text-slate-400 hover:text-emerald-500 hover:bg-emerald-950/30 transition-all text-xs font-semibold"
-                          title="Lapor harga riil pasar (+100 Credit)"
+                          title="Edit harga riil pasar"
                         >
                           ✏️
                         </button>
