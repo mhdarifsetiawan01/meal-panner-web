@@ -26,11 +26,14 @@ apps/
       shopping-list/
       price-watch/        → halaman Community Price Watch
       subscription/
+      history/
   admin/                  → Next.js app admin panel, deploy Vercel project #2
     app/
-      price-watch/         → CRUD campaign & item
-      subscriptions/       → kelola plans & coupons
-      ai-provider/          → switch AI provider aktif
+      price-watch/        → CRUD campaign & item
+      submissions/        → monitoring crowdsource submissions
+      subscriptions/      → kelola plans & coupons
+      ai-config/          → switch AI provider aktif
+      master-ingredients/ → taksonomi bahan masakan & alias
 packages/
   shared-types/           → TypeScript types (Recipe, Subscription, PriceSubmission, dll) — SATU sumber kebenaran, dipakai apps/user & apps/admin
   supabase-client/        → config & helper Supabase client, dipakai kedua app
