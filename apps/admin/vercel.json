@@ -1,4 +1,6 @@
 {
   "buildCommand": "cd ../.. && pnpm exec turbo run build --filter=@masakapa/admin...",
-  "outputDirectory": ".next"
+  "outputDirectory": ".next",
+  "ignoreCommand": "npx turbo-ignore @masakapa/admin"
 }
+
