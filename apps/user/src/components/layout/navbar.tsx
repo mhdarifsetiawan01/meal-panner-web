@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/providers/auth-provider";
+import { AuthGuardLink } from "@/components/auth/auth-guard-link";
 
 export function Navbar() {
   const { user, signOut } = useAuth();
@@ -10,6 +11,7 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+        {/* Logo — bebas diakses tanpa login */}
         <Link href="/" className="flex items-center gap-2 font-bold text-xl text-slate-900 dark:text-slate-100">
           <span className="text-2xl">🍳</span>
           <span className="bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
@@ -18,24 +20,29 @@ export function Navbar() {
         </Link>
 
         <nav className="flex items-center gap-2 sm:gap-4">
-          <Link
+          {/* Pantau Harga — wajib login */}
+          <AuthGuardLink
             href="/price-watch"
             className="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors px-2 py-1"
           >
             Pantau Harga
-          </Link>
-          <Link
+          </AuthGuardLink>
+
+          {/* Riwayat — wajib login */}
+          <AuthGuardLink
             href="/history"
             className="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors px-2 py-1"
           >
             Riwayat
-          </Link>
-          <Link
+          </AuthGuardLink>
+
+          {/* Preferensi — wajib login */}
+          <AuthGuardLink
             href="/onboarding"
             className="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors px-2 py-1"
           >
             Preferensi
-          </Link>
+          </AuthGuardLink>
 
           {user ? (
             <div className="flex items-center gap-3">

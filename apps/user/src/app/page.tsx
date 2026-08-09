@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { Navbar } from "@/components/layout/navbar";
 import { useAuth } from "@/components/providers/auth-provider";
+import { AuthGuardLink } from "@/components/auth/auth-guard-link";
 
 function getContextualGreeting(): { title: string; icon: string } {
   const hour = new Date().getHours();
@@ -45,19 +46,22 @@ export default function Home() {
             </p>
 
             <div className="pt-2 flex flex-wrap gap-4">
-              <Link
+              {/* CTA utama — wajib login */}
+              <AuthGuardLink
                 href="/generate"
                 className="px-6 py-3.5 rounded-2xl bg-white text-emerald-800 font-bold shadow-lg shadow-black/10 hover:bg-emerald-50 transition-all transform hover:-translate-y-0.5 active:translate-y-0 inline-flex items-center gap-2 text-sm sm:text-base"
               >
                 <span>✨ Rencanakan Menu AI</span>
                 <span>&rarr;</span>
-              </Link>
-              <Link
+              </AuthGuardLink>
+
+              {/* Edit Preferensi — wajib login */}
+              <AuthGuardLink
                 href="/onboarding"
                 className="px-5 py-3.5 rounded-2xl bg-emerald-700/60 hover:bg-emerald-700/80 text-emerald-50 font-semibold backdrop-blur-md border border-white/20 transition-all text-sm sm:text-base"
               >
                 ⚙️ Edit Preferensi
-              </Link>
+              </AuthGuardLink>
             </div>
           </div>
 
@@ -67,7 +71,8 @@ export default function Home() {
 
         {/* Quick Features Grid */}
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Link
+          {/* Generator Menu AI — wajib login */}
+          <AuthGuardLink
             href="/generate"
             className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-md transition-all group"
           >
@@ -80,9 +85,10 @@ export default function Home() {
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
               Buat 3 opsi resep masakan dalam hitungan detik.
             </p>
-          </Link>
+          </AuthGuardLink>
 
-          <Link
+          {/* Daftar Belanja — wajib login */}
+          <AuthGuardLink
             href="/shopping-list"
             className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-md transition-all group"
           >
@@ -95,9 +101,10 @@ export default function Home() {
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
               Checklist otomatis bahan masakan pilihan Anda.
             </p>
-          </Link>
+          </AuthGuardLink>
 
-          <Link
+          {/* Pantau Harga — wajib login */}
+          <AuthGuardLink
             href="/price-watch"
             className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-md transition-all group"
           >
@@ -110,9 +117,10 @@ export default function Home() {
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
               Cek &amp; kirim update harga bahan makanan di kotamu.
             </p>
-          </Link>
+          </AuthGuardLink>
 
-          <Link
+          {/* Riwayat Menu — wajib login */}
+          <AuthGuardLink
             href="/history"
             className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-md transition-all group"
           >
@@ -125,7 +133,7 @@ export default function Home() {
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
               Lihat kembali daftar rekomendasi menu sebelumnya.
             </p>
-          </Link>
+          </AuthGuardLink>
         </section>
       </main>
     </div>

@@ -24,28 +24,57 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
-  const checkIsAdmin = (u: SupabaseUser | null): boolean => {
-    if (!u) return false;
-    const role = u.app_metadata?.role || u.user_metadata?.role;
-    return role === "admin";
+  /**
+   * Fetch role from the backend API (source of truth = users.role in DB).
+   * This is called after a valid Supabase session is confirmed.
+   */
+  const fetchRoleFromAPI = async (accessToken: string): Promise<boolean> => {
+    try {
+      const apiURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
+      const res = await fetch(`${apiURL}/me`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (!res.ok) return false;
+      const json = await res.json();
+      return json?.data?.role === "admin";
+    } catch {
+      return false;
+    }
   };
 
   useEffect(() => {
     try {
       const supabase = getSupabaseClient();
 
-      supabase.auth.getSession().then(({ data: { session } }) => {
+      supabase.auth.getSession().then(async ({ data: { session } }) => {
         setSession(session);
         setUser(session?.user ?? null);
+
+        if (session?.access_token) {
+          const adminStatus = await fetchRoleFromAPI(session.access_token);
+          setIsAdmin(adminStatus);
+        } else {
+          setIsAdmin(false);
+        }
+
         setLoading(false);
       });
 
       const {
         data: { subscription },
-      } = supabase.auth.onAuthStateChange((_event, session) => {
+      } = supabase.auth.onAuthStateChange(async (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
+
+        if (session?.access_token) {
+          const adminStatus = await fetchRoleFromAPI(session.access_token);
+          setIsAdmin(adminStatus);
+        } else {
+          setIsAdmin(false);
+        }
+
         setLoading(false);
       });
 
@@ -66,6 +95,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await supabaseSignOut();
     setUser(null);
     setSession(null);
+    setIsAdmin(false);
   };
 
   return (
@@ -74,7 +104,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         session,
         loading,
-        isAdmin: checkIsAdmin(user),
+        isAdmin,
         signInWithGoogle,
         signOut,
       }}

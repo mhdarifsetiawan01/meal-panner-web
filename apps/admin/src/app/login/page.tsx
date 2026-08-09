@@ -1,11 +1,20 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { GoogleLoginButton } from "@/components/auth/google-login-button";
 import { useAuth } from "@/components/providers/auth-provider";
 
 export default function AdminLoginPage() {
   const { user, loading, isAdmin, signOut } = useAuth();
+  const router = useRouter();
+
+  // Jika sudah login sebagai admin, redirect ke dashboard
+  useEffect(() => {
+    if (!loading && user && isAdmin) {
+      router.replace("/");
+    }
+  }, [user, loading, isAdmin, router]);
 
   if (loading) {
     return (
@@ -31,13 +40,26 @@ export default function AdminLoginPage() {
 
         {user ? (
           <div className="space-y-4">
-            <div className={`p-4 rounded-2xl border text-left ${isAdmin ? "bg-emerald-950/40 border-emerald-800" : "bg-red-950/40 border-red-800"}`}>
-              <p className={`text-xs font-semibold mb-1 ${isAdmin ? "text-emerald-400" : "text-red-400"}`}>
-                {isAdmin ? "Status: Admin Terverifikasi" : "Status: Non-Admin"}
+            <div
+              className={`p-4 rounded-2xl border text-left ${
+                isAdmin
+                  ? "bg-emerald-950/40 border-emerald-800"
+                  : "bg-red-950/40 border-red-800"
+              }`}
+            >
+              <p
+                className={`text-xs font-semibold mb-1 ${
+                  isAdmin ? "text-emerald-400" : "text-red-400"
+                }`}
+              >
+                {isAdmin ? "Status: Admin Terverifikasi ✓" : "Status: Bukan Admin"}
               </p>
-              <p className="text-sm font-medium text-slate-200">
-                {user.email}
-              </p>
+              <p className="text-sm font-medium text-slate-200">{user.email}</p>
+              {!isAdmin && (
+                <p className="text-xs text-slate-500 mt-2">
+                  Akun ini tidak terdaftar sebagai administrator. Hubungi pengelola sistem.
+                </p>
+              )}
             </div>
             <button
               onClick={() => signOut()}

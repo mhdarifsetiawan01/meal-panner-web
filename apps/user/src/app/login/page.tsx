@@ -1,11 +1,22 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { GoogleLoginButton } from "@/components/auth/google-login-button";
 import { useAuth } from "@/components/providers/auth-provider";
 
 export default function LoginPage() {
   const { user, loading, signOut } = useAuth();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const nextPath = searchParams.get("next") || "/";
+
+  // Jika sudah login, redirect ke tujuan asli (dari param `next`) atau ke home
+  useEffect(() => {
+    if (!loading && user) {
+      router.replace(nextPath);
+    }
+  }, [user, loading, router, nextPath]);
 
   if (loading) {
     return (
@@ -48,7 +59,16 @@ export default function LoginPage() {
           </div>
         ) : (
           <div className="flex flex-col gap-4">
-            <GoogleLoginButton className="w-full" />
+            {/* Teruskan `next` ke GoogleLoginButton agar setelah OAuth callback, */}
+            {/* Supabase mengarahkan balik ke URL yang benar */}
+            <GoogleLoginButton
+              className="w-full"
+              redirectTo={
+                typeof window !== "undefined"
+                  ? `${window.location.origin}${nextPath}`
+                  : undefined
+              }
+            />
             <p className="text-xs text-slate-400 dark:text-slate-500">
               Dengan masuk, Anda menyetujui Ketentuan Layanan &amp; Kebijakan Privasi MasakApa.
             </p>
