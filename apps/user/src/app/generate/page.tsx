@@ -72,10 +72,12 @@ export default function GeneratePage() {
   }, [authLoading, user]);
 
   const handleSelectOption = async (option: RecipeOption) => {
+    const price = option.estimated_total_price || option.total_estimated_price || 0;
     const payload = {
       recipe_name: option.recipe_name,
       description: option.description || "",
-      total_estimated_price: option.total_estimated_price,
+      estimated_total_price: price,
+      total_estimated_price: price,
       ingredients: option.ingredients,
     };
 

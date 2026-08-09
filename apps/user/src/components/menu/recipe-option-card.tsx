@@ -12,6 +12,7 @@ export interface RecipeOption {
   recipe_name: string;
   description?: string;
   total_estimated_price: number;
+  estimated_total_price?: number;
   ingredients: Ingredient[];
   instructions?: string[];
 }

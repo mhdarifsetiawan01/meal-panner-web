@@ -27,6 +27,26 @@ export default function HistoryPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isUpgradeRequired, setIsUpgradeRequired] = useState(false);
   const [isMaintenance, setIsMaintenance] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+
+  const handleDelete = async (historyId: number, recipeName: string) => {
+    if (!window.confirm(`Hapus "${recipeName}" dari riwayat masakan Anda?`)) {
+      return;
+    }
+
+    setDeletingId(historyId);
+    const res = await fetchWithAuth(`/history/${historyId}`, {
+      method: "DELETE",
+    });
+    setDeletingId(null);
+
+    if (res.error) {
+      alert("Gagal menghapus riwayat: " + res.error.message);
+      return;
+    }
+
+    setHistoryItems((prev) => prev.filter((item) => item.id !== historyId));
+  };
 
   const fetchHistory = async () => {
     setLoading(true);
@@ -172,7 +192,7 @@ export default function HistoryPage() {
                   )}
                 </div>
 
-                <div className="flex items-center justify-between sm:justify-end gap-4 border-t sm:border-t-0 border-slate-100 dark:border-slate-800 pt-3 sm:pt-0">
+                <div className="flex items-center justify-between sm:justify-end gap-3 border-t sm:border-t-0 border-slate-100 dark:border-slate-800 pt-3 sm:pt-0">
                   <span className="text-base font-extrabold text-emerald-600 dark:text-emerald-400">
                     Rp {item.total_estimated_price.toLocaleString("id-ID")}
                   </span>
@@ -185,6 +205,15 @@ export default function HistoryPage() {
                       🛒 Lihat Daftar Belanja
                     </Link>
                   ) : null}
+
+                  <button
+                    onClick={() => handleDelete(item.id, item.recipe_name)}
+                    disabled={deletingId === item.id}
+                    title="Hapus dari riwayat"
+                    className="p-2 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors text-xs font-bold disabled:opacity-50 flex items-center justify-center min-w-[36px]"
+                  >
+                    {deletingId === item.id ? "⌛" : "🗑️"}
+                  </button>
                 </div>
               </div>
             ))}
