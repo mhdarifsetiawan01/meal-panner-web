@@ -170,7 +170,7 @@ export default function ShoppingListDetailPage({
     }
 
     setRewardNotice(
-      `🎁 Harga "${ingredientName}" di-update ke Rp ${newPrice.toLocaleString("id-ID")}! +100 Credit Reward didapatkan!`
+      `✏️ Harga "${ingredientName}" di-update ke Rp ${newPrice.toLocaleString("id-ID")}!`
     );
     setTimeout(() => setRewardNotice(null), 4000);
   };
