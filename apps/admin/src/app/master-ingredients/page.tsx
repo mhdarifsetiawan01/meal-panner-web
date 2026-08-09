@@ -40,6 +40,7 @@ export default function MasterIngredientsPage() {
   const [formCategory, setFormCategory] = useState("Cabai");
   const [formName, setFormName] = useState("");
   const [formDefaultUnit, setFormDefaultUnit] = useState("kg");
+  const [formBaselinePrice, setFormBaselinePrice] = useState<number>(10000);
   const [formAliasesStr, setFormAliasesStr] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -72,6 +73,7 @@ export default function MasterIngredientsPage() {
     setFormCategory("Cabai");
     setFormName("");
     setFormDefaultUnit("kg");
+    setFormBaselinePrice(10000);
     setFormAliasesStr("");
     setIsModalOpen(true);
   };
@@ -81,6 +83,7 @@ export default function MasterIngredientsPage() {
     setFormCategory(item.category);
     setFormName(item.name);
     setFormDefaultUnit(item.default_unit);
+    setFormBaselinePrice(item.baseline_price || 10000);
     setFormAliasesStr("");
     setIsModalOpen(true);
   };
@@ -103,6 +106,7 @@ export default function MasterIngredientsPage() {
             category: formCategory,
             name: formName.trim(),
             default_unit: formDefaultUnit.trim(),
+            baseline_price: Number(formBaselinePrice) || 10000,
           }),
         }
       );
@@ -130,6 +134,7 @@ export default function MasterIngredientsPage() {
             category: formCategory,
             name: formName.trim(),
             default_unit: formDefaultUnit.trim(),
+            baseline_price: Number(formBaselinePrice) || 10000,
             aliases: aliasesArray,
           }),
         }
@@ -332,14 +337,19 @@ export default function MasterIngredientsPage() {
                         </div>
                       </div>
 
-                      {/* Main Title & Default Unit */}
+                      {/* Main Title & Default Unit & Baseline Price */}
                       <div className="mt-3">
                         <h3 className="font-extrabold text-slate-100 text-lg">
                           {item.name}
                         </h3>
-                        <p className="text-xs text-slate-400 mt-0.5">
-                          Satuan Standar: <span className="font-mono text-slate-200">{item.default_unit}</span>
-                        </p>
+                        <div className="flex items-center justify-between text-xs text-slate-400 mt-1">
+                          <p>
+                            Satuan: <span className="font-mono text-slate-200">{item.default_unit}</span>
+                          </p>
+                          <p className="font-semibold text-emerald-400">
+                            Rp {(item.baseline_price || 10000).toLocaleString("id-ID")}
+                          </p>
+                        </div>
                       </div>
 
                       {/* Aliases Tags */}
@@ -472,6 +482,19 @@ export default function MasterIngredientsPage() {
                   onChange={(e) => setFormDefaultUnit(e.target.value)}
                   required
                   className="w-full px-4 py-2.5 rounded-2xl bg-slate-950 border border-slate-800 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-300">Harga Acuan Baseline (Rp)</label>
+                <input
+                  type="number"
+                  placeholder="Misal: 15000"
+                  value={formBaselinePrice}
+                  onChange={(e) => setFormBaselinePrice(Number(e.target.value))}
+                  required
+                  min={100}
+                  className="w-full px-4 py-2.5 rounded-2xl bg-slate-950 border border-slate-800 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono text-emerald-400 font-semibold"
                 />
               </div>
 
