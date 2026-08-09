@@ -80,16 +80,20 @@ export default function AdminDashboardPage() {
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
                 <div className="p-4 rounded-xl bg-slate-950 border border-slate-800/80 space-y-1">
-                  <p className="text-slate-400">Backend API</p>
-                  <p className="text-emerald-400 font-bold">● Running (Port 8080)</p>
+                  <p className="text-slate-400">Backend REST API</p>
+                  <p className="text-emerald-400 font-bold">
+                    ● Connected (masakapa-api.fly.dev)
+                  </p>
                 </div>
                 <div className="p-4 rounded-xl bg-slate-950 border border-slate-800/80 space-y-1">
                   <p className="text-slate-400">Database PostgreSQL</p>
-                  <p className="text-emerald-400 font-bold">● Connected (Port 5434)</p>
+                  <p className="text-emerald-400 font-bold">
+                    ● Connected (Supabase Cloud DB)
+                  </p>
                 </div>
                 <div className="p-4 rounded-xl bg-slate-950 border border-slate-800/80 space-y-1">
-                  <p className="text-slate-400">Consensus Job Engine</p>
-                  <p className="text-indigo-400 font-bold">● Ready (POST trigger active)</p>
+                  <p className="text-slate-400">Consensus Engine &amp; AI</p>
+                  <p className="text-indigo-400 font-bold">● Active &amp; Operational</p>
                 </div>
               </div>
             </div>

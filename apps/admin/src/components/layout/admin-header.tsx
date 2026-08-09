@@ -6,12 +6,22 @@ import { useAuth } from "../providers/auth-provider";
 export function AdminHeader() {
   const { user, signOut } = useAuth();
 
+  const isLocal =
+    typeof window !== "undefined" &&
+    (window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1" ||
+      process.env.NEXT_PUBLIC_API_URL?.includes("localhost"));
+
+  const envLabel = isLocal
+    ? "Environment: Local Dev (Postgres: 5434)"
+    : "Environment: Production (Fly.io + Supabase)";
+
   return (
     <header className="h-16 border-b border-slate-800 bg-slate-900/60 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-30">
       <div className="flex items-center gap-2">
         <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
         <span className="text-xs font-semibold text-slate-400">
-          Environment: Local Dev (Postgres: 5434)
+          {envLabel}
         </span>
       </div>
 
