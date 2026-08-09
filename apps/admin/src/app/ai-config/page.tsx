@@ -35,7 +35,14 @@ export default function AdminAIConfigPage() {
     setLoading(false);
 
     if (res.data && res.data.length > 0) {
-      setProviders(res.data);
+      // Deduplicate by provider_name
+      const uniqueMap = new Map<string, AIProviderConfig>();
+      res.data.forEach((item) => {
+        if (!uniqueMap.has(item.provider_name) || item.is_active) {
+          uniqueMap.set(item.provider_name, item);
+        }
+      });
+      setProviders(Array.from(uniqueMap.values()));
     }
   };
 
@@ -137,13 +144,13 @@ export default function AdminAIConfigPage() {
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {providers.map((p) => {
+                {providers.map((p, idx) => {
                   const isActive = p.is_active;
                   const isPending = isSwitching === p.provider_name;
 
                   return (
                     <div
-                      key={p.provider_name}
+                      key={p.id ? `provider-${p.provider_name}-${p.id}` : `provider-${p.provider_name}-${idx}`}
                       className={`p-6 rounded-3xl border transition-all flex flex-col justify-between space-y-4 ${
                         isActive
                           ? "bg-indigo-950/40 border-indigo-500 shadow-lg shadow-indigo-950/50"
