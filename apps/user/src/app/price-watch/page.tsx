@@ -36,6 +36,12 @@ export interface CreditSummary {
   balance: number;
 }
 
+export interface CityOption {
+  id: number;
+  name: string;
+  province_name: string;
+}
+
 export default function PriceWatchPage() {
   const { user, loading: authLoading } = useAuth();
 
@@ -43,6 +49,7 @@ export default function PriceWatchPage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [mySubmissions, setMySubmissions] = useState<UserSubmission[]>([]);
   const [creditBalance, setCreditBalance] = useState<number>(0);
+  const [cities, setCities] = useState<CityOption[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Submit Modal State
@@ -52,6 +59,30 @@ export default function PriceWatchPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
+    fetch(`${apiBase.replace(/\/$/, "")}/cities`)
+      .then((r) => r.json())
+      .then((json) => {
+        const list: CityOption[] = json?.data?.cities || [];
+        setCities(list);
+        if (list.length > 0) {
+          setCityId((prev) => (prev === 1 && list.some((c) => c.id === 1) ? 1 : list[0].id));
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      fetchWithAuth<any>("/preferences").then((res) => {
+        if (res.data?.city_id) {
+          setCityId(res.data.city_id);
+        }
+      });
+    }
+  }, [authLoading, user]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -257,7 +288,7 @@ export default function PriceWatchPage() {
                         <span className="text-xs text-slate-500">({sub.unit})</span>
                       </div>
                       <p className="text-xs text-slate-500 mt-0.5">
-                        {sub.campaign_title} • Kota ID {sub.city_id}
+                        {sub.campaign_title} • {cities.find((c) => c.id === sub.city_id)?.name || `Kota ID ${sub.city_id}`}
                       </p>
                     </div>
 
@@ -313,11 +344,11 @@ export default function PriceWatchPage() {
                     onChange={(e) => setCityId(Number(e.target.value))}
                     className="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-900 dark:text-slate-100 outline-none"
                   >
-                    <option value={1}>Jakarta Selatan (DKI Jakarta)</option>
-                    <option value={2}>Jakarta Timur (DKI Jakarta)</option>
-                    <option value={3}>Surabaya (Jawa Timur)</option>
-                    <option value={4}>Bandung (Jawa Barat)</option>
-                    <option value={5}>Medan (Sumatera Utara)</option>
+                    {cities.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name} ({c.province_name})
+                      </option>
+                    ))}
                   </select>
                 </div>
 

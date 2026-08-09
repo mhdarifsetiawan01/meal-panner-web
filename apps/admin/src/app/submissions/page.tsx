@@ -38,6 +38,8 @@ const sampleSubmissions: SubmissionMonitoring[] = [
 export default function SubmissionsMonitoringPage() {
   const [selectedCityId, setSelectedCityId] = useState<number | "all">("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [submissions, setSubmissions] = useState<SubmissionMonitoring[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const [isRunningConsensus, setIsRunningConsensus] = useState(false);
   const [consensusResult, setConsensusResult] = useState<{
@@ -46,6 +48,27 @@ export default function SubmissionsMonitoringPage() {
     rejected_count: number;
   } | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Consensus job parameters
+  const [minSubmissions, setMinSubmissions] = useState<number>(3);
+  const [tolerancePercent, setTolerancePercent] = useState<number>(15);
+
+  const fetchSubmissions = async () => {
+    setLoading(true);
+    let url = "/admin/price-watch/submissions?";
+    if (selectedCityId !== "all") url += `city_id=${selectedCityId}&`;
+    if (selectedStatus !== "all") url += `status=${selectedStatus}&`;
+
+    const res = await fetchAdminWithAuth<SubmissionMonitoring[]>(url);
+    setLoading(false);
+    if (res.data) {
+      setSubmissions(res.data);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchSubmissions();
+  }, [selectedCityId, selectedStatus]);
 
   const handleRunConsensus = async () => {
     setIsRunningConsensus(true);
@@ -58,6 +81,11 @@ export default function SubmissionsMonitoringPage() {
       rejected_count: number;
     }>("/admin/price-watch/run-consensus", {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        min_submissions: minSubmissions,
+        tolerance_percent: tolerancePercent,
+      }),
     });
 
     setIsRunningConsensus(false);
@@ -69,14 +97,11 @@ export default function SubmissionsMonitoringPage() {
 
     if (res.data) {
       setConsensusResult(res.data);
+      fetchSubmissions();
     }
   };
 
-  const filteredSubmissions = sampleSubmissions.filter((sub) => {
-    if (selectedCityId !== "all" && sub.city_id !== selectedCityId) return false;
-    if (selectedStatus !== "all" && sub.status !== selectedStatus) return false;
-    return true;
-  });
+  const filteredSubmissions = submissions;
 
   return (
     <AdminGuard>
@@ -88,30 +113,65 @@ export default function SubmissionsMonitoringPage() {
 
           <main className="p-6 sm:p-8 space-y-8 max-w-6xl">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-                  Monitoring Submission Harga 📈
-                </h1>
-                <p className="text-sm text-slate-400 mt-1">
-                  Pantau data masukan harga dari komunitas per kota dan jalankan validasi konsensus.
-                </p>
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+                    Monitoring Submission Harga 📈
+                  </h1>
+                  <p className="text-sm text-slate-400 mt-1">
+                    Pantau data masukan harga dari komunitas per kota dan jalankan validasi konsensus.
+                  </p>
+                </div>
               </div>
 
-              <button
-                onClick={handleRunConsensus}
-                disabled={isRunningConsensus}
-                className="px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold text-xs shadow-lg shadow-emerald-600/30 transition-all flex items-center justify-center gap-2 self-start sm:self-auto disabled:opacity-60"
-              >
-                {isRunningConsensus ? (
-                  <>
-                    <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
-                    <span>Menjalankan Consensus Job...</span>
-                  </>
-                ) : (
-                  <span>⚡ Jalankan Job Validasi Konsensus</span>
-                )}
-              </button>
+              {/* Consensus Job Config + Run Button */}
+              <div className="flex flex-wrap items-end gap-3 p-4 rounded-2xl bg-slate-900/70 border border-slate-800">
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs text-slate-400 font-semibold">Min. Laporan per Grup</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min={1}
+                      max={20}
+                      value={minSubmissions}
+                      onChange={(e) => setMinSubmissions(Math.max(1, parseInt(e.target.value) || 1))}
+                      className="w-20 px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    />
+                    <span className="text-xs text-slate-500">(default: 3)</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs text-slate-400 font-semibold">Toleransi Harga (%)</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min={1}
+                      max={50}
+                      value={tolerancePercent}
+                      onChange={(e) => setTolerancePercent(Math.max(1, parseFloat(e.target.value) || 15))}
+                      className="w-20 px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    />
+                    <span className="text-xs text-slate-500">(default: 15%)</span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleRunConsensus}
+                  disabled={isRunningConsensus}
+                  className="px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold text-xs shadow-lg shadow-emerald-600/30 transition-all flex items-center justify-center gap-2 disabled:opacity-60 ml-auto"
+                >
+                  {isRunningConsensus ? (
+                    <>
+                      <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+                      <span>Menjalankan Consensus Job...</span>
+                    </>
+                  ) : (
+                    <span>⚡ Jalankan Job Validasi Konsensus</span>
+                  )}
+                </button>
+              </div>
             </div>
 
             {/* Job Execution Success Result */}
@@ -207,7 +267,7 @@ export default function SubmissionsMonitoringPage() {
                           <td className="py-4 px-6 font-bold text-slate-100">
                             {sub.ingredient_name} <span className="text-slate-500 font-normal">({sub.unit})</span>
                           </td>
-                          <td className="py-4 px-6">{cityNames[sub.city_id] || sub.city_name}</td>
+                          <td className="py-4 px-6">{sub.city_name || cityNames[sub.city_id] || `Kota ID ${sub.city_id}`}</td>
                           <td className="py-4 px-6 font-extrabold text-emerald-400">
                             Rp {sub.submitted_price.toLocaleString("id-ID")}
                           </td>
