@@ -42,6 +42,11 @@ export default function ShoppingListDetailPage({
   const [isMaintenance, setIsMaintenance] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  // Price adjustment state
+  const [editingPriceIndex, setEditingPriceIndex] = useState<number | null>(null);
+  const [editingPriceInput, setEditingPriceInput] = useState<number | "">("");
+  const [rewardNotice, setRewardNotice] = useState<string | null>(null);
+
   const fetchShoppingList = async () => {
     setLoading(true);
     setErrorMsg(null);
@@ -109,6 +114,65 @@ export default function ShoppingListDetailPage({
       setShoppingList({ ...shoppingList, items: updatedItems });
       alert("Gagal memperbarui status item: " + res.error.message);
     }
+  };
+
+  const handleSaveItemPrice = async (index: number) => {
+    if (!shoppingList) return;
+    const item = shoppingList.items[index];
+    if (!item) return;
+
+    const ingredientName = item.ingredient_name || item.name;
+    if (!ingredientName || editingPriceInput === "" || Number(editingPriceInput) < 0) return;
+
+    const newPrice = Number(editingPriceInput);
+    const oldPrice = item.estimated_price || 0;
+
+    // Optimistic update
+    const updatedItems = [...shoppingList.items];
+    updatedItems[index] = {
+      ...updatedItems[index],
+      estimated_price: newPrice,
+    };
+    const priceDiff = newPrice - oldPrice;
+    const newTotal = (shoppingList.total_estimated_price || 0) + priceDiff;
+
+    setShoppingList({
+      ...shoppingList,
+      total_estimated_price: newTotal,
+      items: updatedItems,
+    });
+    setEditingPriceIndex(null);
+
+    const res = await fetchWithAuth<{
+      new_total_estimated_price: number;
+      reward_credits_earned: number;
+    }>(`/shopping-list/${id}/item-price`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        ingredient_name: ingredientName,
+        real_price: newPrice,
+      }),
+    });
+
+    if (res.error) {
+      // Revert on error
+      updatedItems[index] = {
+        ...updatedItems[index],
+        estimated_price: oldPrice,
+      };
+      setShoppingList({
+        ...shoppingList,
+        total_estimated_price: (shoppingList.total_estimated_price || 0),
+        items: updatedItems,
+      });
+      alert("Gagal memperbarui harga item: " + res.error.message);
+      return;
+    }
+
+    setRewardNotice(
+      `🎁 Harga "${ingredientName}" di-update ke Rp ${newPrice.toLocaleString("id-ID")}! +100 Credit Reward didapatkan!`
+    );
+    setTimeout(() => setRewardNotice(null), 4000);
   };
 
   const handleCopyText = () => {
@@ -210,6 +274,16 @@ export default function ShoppingListDetailPage({
             </button>
           </div>
 
+          {/* Reward Notice Banner */}
+          {rewardNotice && (
+            <div className="p-4 rounded-2xl bg-emerald-950/80 border border-emerald-700 text-emerald-300 text-xs font-semibold flex items-center justify-between shadow-lg animate-pulse">
+              <span>{rewardNotice}</span>
+              <button onClick={() => setRewardNotice(null)} className="text-xs opacity-70 hover:opacity-100">
+                ✕
+              </button>
+            </div>
+          )}
+
           {/* Progress & Price Summary Bar */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs font-bold text-slate-600 dark:text-slate-400">
@@ -235,26 +309,34 @@ export default function ShoppingListDetailPage({
 
           {/* Items Checklist List */}
           <div className="space-y-2 pt-2">
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
-              Item Bahan Masakan
-            </p>
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                Item Bahan Masakan
+              </p>
+              <span className="text-[11px] text-emerald-500 font-semibold">
+                💡 Klik ✏️ untuk lapor harga riil pasar (+100 Credit)
+              </span>
+            </div>
 
             {items.map((item, index) => {
               const isChecked = !!(item.is_checked ?? item.checked);
               const name = item.ingredient_name || item.name || "Bahan";
               const qtyStr = item.quantity ? ` (${item.quantity}${item.unit ? ` ${item.unit}` : ""})` : "";
+              const isEditingThisPrice = editingPriceIndex === index;
 
               return (
                 <div
                   key={index}
-                  onClick={() => handleToggleItem(index)}
-                  className={`flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer select-none ${
+                  className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${
                     isChecked
                       ? "bg-slate-100/60 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-500"
-                      : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 text-slate-900 dark:text-slate-100 shadow-sm"
+                      : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-emerald-500/50 text-slate-900 dark:text-slate-100 shadow-sm"
                   }`}
                 >
-                  <div className="flex items-center gap-3.5">
+                  <div
+                    className="flex items-center gap-3.5 flex-1 cursor-pointer select-none"
+                    onClick={() => handleToggleItem(index)}
+                  >
                     <input
                       type="checkbox"
                       checked={isChecked}
@@ -266,9 +348,57 @@ export default function ShoppingListDetailPage({
                     </span>
                   </div>
 
-                  <span className={`text-xs font-bold ${isChecked ? "text-slate-400" : "text-slate-600 dark:text-slate-300"}`}>
-                    {item.estimated_price ? `Rp ${item.estimated_price.toLocaleString("id-ID")}` : "-"}
-                  </span>
+                  {/* Price & Adjustment Input */}
+                  <div className="flex items-center gap-2">
+                    {isEditingThisPrice ? (
+                      <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                        <span className="text-xs text-slate-400 font-bold">Rp</span>
+                        <input
+                          type="number"
+                          placeholder="Harga riil..."
+                          value={editingPriceInput}
+                          onChange={(e) => setEditingPriceInput(e.target.value === "" ? "" : Number(e.target.value))}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") handleSaveItemPrice(index);
+                            if (e.key === "Escape") setEditingPriceIndex(null);
+                          }}
+                          className="w-24 px-2 py-1 text-xs rounded-xl bg-slate-100 dark:bg-slate-800 border border-emerald-500 text-emerald-600 dark:text-emerald-400 font-bold focus:outline-none"
+                          autoFocus
+                        />
+                        <button
+                          onClick={() => handleSaveItemPrice(index)}
+                          className="px-2 py-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-600/30"
+                          title="Simpan & Lapor"
+                        >
+                          ✓
+                        </button>
+                        <button
+                          onClick={() => setEditingPriceIndex(null)}
+                          className="px-2 py-1 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-500 text-xs font-bold"
+                          title="Batal"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <span className={`text-xs font-bold ${isChecked ? "text-slate-400" : "text-slate-700 dark:text-slate-200"}`}>
+                          {item.estimated_price ? `Rp ${item.estimated_price.toLocaleString("id-ID")}` : "-"}
+                        </span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingPriceIndex(index);
+                            setEditingPriceInput(item.estimated_price || 0);
+                          }}
+                          className="p-1 rounded-lg text-slate-400 hover:text-emerald-500 hover:bg-emerald-950/30 transition-all text-xs font-semibold"
+                          title="Lapor harga riil pasar (+100 Credit)"
+                        >
+                          ✏️
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               );
             })}
