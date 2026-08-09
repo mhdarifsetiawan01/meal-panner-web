@@ -64,10 +64,17 @@ export default function GeneratePage() {
     }
   };
 
+  const fetchLatestMenu = async () => {
+    const res = await fetchWithAuth<{ options: RecipeOption[] }>("/menu/latest");
+    if (res.data?.options && res.data.options.length > 0) {
+      setOptions(res.data.options);
+    }
+  };
+
   useEffect(() => {
     if (!authLoading && user) {
       fetchPreferences();
-      handleGenerate();
+      fetchLatestMenu();
     }
   }, [authLoading, user]);
 
@@ -132,8 +139,10 @@ export default function GeneratePage() {
                 <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
                 <span>Meracik Menu...</span>
               </>
-            ) : (
+            ) : options.length > 0 ? (
               <span>🔄 Generate Ulang</span>
+            ) : (
+              <span>✨ Racik Menu AI</span>
             )}
           </button>
         </div>
@@ -215,12 +224,19 @@ export default function GeneratePage() {
                 </p>
               </div>
             </div>
-            <div className="pt-2">
+            <div className="pt-2 flex flex-wrap items-center gap-3">
               <Link
                 href="/subscription"
                 className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-md shadow-amber-600/20 transition-all"
               >
                 <span>⭐ Upgrade ke Premium (Rp 29.000)</span>
+              </Link>
+
+              <Link
+                href="/history"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-700 font-bold text-xs shadow-sm hover:bg-amber-100/50 dark:hover:bg-amber-900/30 transition-all"
+              >
+                <span>📜 Buka Riwayat Menu Sebelumnya</span>
               </Link>
             </div>
           </div>
@@ -230,6 +246,33 @@ export default function GeneratePage() {
         {errorMsg && !isRateLimited && !isGenerating && (
           <div className="p-4 rounded-2xl bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm">
             {errorMsg}
+          </div>
+        )}
+
+        {/* Initial State - CTA Card before generating */}
+        {!isGenerating && options.length === 0 && !isRateLimited && !isMaintenance && (
+          <div className="p-8 sm:p-12 rounded-3xl bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-slate-900/40 border border-emerald-500/20 text-center space-y-6 shadow-xl">
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-3xl shadow-lg shadow-emerald-600/30">
+              🤖
+            </div>
+            <div className="max-w-lg mx-auto space-y-2">
+              <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
+                Siap Meracik Menu Masakan Hari Ini?
+              </h2>
+              <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                AI akan membuat 3 opsi menu masakan harian presisi berdasarkan preferensi, budget, dan perkiraan harga bahan terbaru di kotamu.
+              </p>
+            </div>
+            <div>
+              <button
+                onClick={handleGenerate}
+                disabled={isGenerating}
+                className="px-8 py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-extrabold shadow-xl shadow-emerald-600/30 transition-all transform hover:-translate-y-0.5 text-base inline-flex items-center gap-2"
+              >
+                <span>✨ Racik Menu AI Hari Ini</span>
+                <span>&rarr;</span>
+              </button>
+            </div>
           </div>
         )}
 
