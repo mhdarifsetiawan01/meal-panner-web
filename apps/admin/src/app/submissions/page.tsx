@@ -92,6 +92,40 @@ export default function SubmissionsMonitoringPage() {
     }
   };
 
+  const handleUpdateStatus = async (id: number, status: string) => {
+    setErrorMsg(null);
+    const res = await fetchAdminWithAuth(`/admin/price-watch/submissions/${id}/status`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
+    });
+
+    if (res.error) {
+      setErrorMsg("Gagal merubah status: " + res.error.message);
+      return;
+    }
+
+    fetchSubmissions();
+  };
+
+  const handleDeleteSubmission = async (id: number) => {
+    if (!window.confirm(`Hapus laporan submission #${id}? Tindakan ini tidak dapat dibatalkan.`)) {
+      return;
+    }
+
+    setErrorMsg(null);
+    const res = await fetchAdminWithAuth(`/admin/price-watch/submissions/${id}`, {
+      method: "DELETE",
+    });
+
+    if (res.error) {
+      setErrorMsg("Gagal menghapus submission: " + res.error.message);
+      return;
+    }
+
+    fetchSubmissions();
+  };
+
   const filteredSubmissions = submissions;
 
   return (
@@ -219,6 +253,7 @@ export default function SubmissionsMonitoringPage() {
                   <option value="pending">Pending (Menunggu Job)</option>
                   <option value="validated">Validated (Terverifikasi)</option>
                   <option value="rejected">Rejected (Outlier / Diluar Toleransi)</option>
+                  <option value="expired">Expired (Kadaluwarsa)</option>
                 </select>
               </div>
             </div>
@@ -234,12 +269,13 @@ export default function SubmissionsMonitoringPage() {
                     <th className="py-4 px-6">Harga Dilaporkan</th>
                     <th className="py-4 px-6">Status Validasi</th>
                     <th className="py-4 px-6">Waktu Laporan</th>
+                    <th className="py-4 px-6 text-right">Aksi Admin</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800 text-slate-300">
                   {filteredSubmissions.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="py-8 text-center text-slate-500">
+                      <td colSpan={7} className="py-8 text-center text-slate-500">
                         Tidak ada laporan harga yang cocok dengan filter.
                       </td>
                     </tr>
@@ -249,6 +285,7 @@ export default function SubmissionsMonitoringPage() {
                         pending: { label: "🟡 Pending", class: "bg-amber-950 text-amber-300 border-amber-800" },
                         validated: { label: "🟢 Validated (+1 Cr)", class: "bg-emerald-950 text-emerald-300 border-emerald-800" },
                         rejected: { label: "🔴 Rejected", class: "bg-red-950 text-red-300 border-red-800" },
+                        expired: { label: "⚪ Expired", class: "bg-slate-800 text-slate-400 border-slate-700" },
                       };
                       const badge = statusBadges[sub.status] || statusBadges.pending;
 
@@ -269,6 +306,26 @@ export default function SubmissionsMonitoringPage() {
                           </td>
                           <td className="py-4 px-6 text-slate-400">
                             {new Date(sub.created_at).toLocaleString("id-ID")}
+                          </td>
+                          <td className="py-4 px-6 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              {sub.status !== "expired" && (
+                                <button
+                                  onClick={() => handleUpdateStatus(sub.id, "expired")}
+                                  className="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-semibold border border-slate-700 transition-all"
+                                  title="Tandai Kadaluwarsa (Expired)"
+                                >
+                                  🕒 Expire
+                                </button>
+                              )}
+                              <button
+                                onClick={() => handleDeleteSubmission(sub.id)}
+                                className="px-2.5 py-1 rounded-xl bg-red-950/60 hover:bg-red-900 text-red-300 text-[11px] font-semibold border border-red-800 transition-all"
+                                title="Hapus Submission"
+                              >
+                                🗑️ Hapus
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );

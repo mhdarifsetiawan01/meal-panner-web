@@ -268,7 +268,7 @@ export interface AdminSubmissionDetail {
   city_name: string;
   city_id: number;
   submitted_price: number;
-  status: "pending" | "validated" | "rejected";
+  status: "pending" | "validated" | "rejected" | "expired";
   created_at: string;
 }
 
